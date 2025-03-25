@@ -119,7 +119,7 @@ exports.email_verify_confirm = async (req, res) => {
 
             var id = mail_details.id;
 
-            var up_query = "UPDATE user_email_verify SET is_verified=1,updated_on=CURRENT_TIMESTAMP WHERE id=?"
+            var up_query = "UPDATE user_email_verify SET is_verified=1,updated_on=CURRENT_TIMESTAMP WHERE id=:id";
 
             await db.query(up_query,
                 {
