@@ -94,6 +94,55 @@ exports.email_verify = async (req, res) => {
     }
 }
 
+exports.email_verify_confirm = async (req, res) => {
+
+    var verify_code = req.body.verify_code;
+
+    if (!verify_code) {
+        return res.status(400).json({ message: "Missing Verify Code" });
+    }
+
+    var sql1 = "SELECT * FROM user_email_verify WHERE verify_code=:verify_code";
+
+    var sql1_response = await db.query(sql1,
+        {
+            replacements: { verify_code },
+            type: db.QueryTypes.SELECT,
+        }
+    );
+
+    if (sql1_response.length != 0) {
+
+        var mail_details = sql1_response[0];
+
+        if (mail_details.is_verified == 0) {
+
+            var id = mail_details.id;
+
+            var up_query = "UPDATE user_email_verify SET is_verified=1,updated_on=CURRENT_TIMESTAMP WHERE id=?"
+
+            await db.query(up_query,
+                {
+                    replacements: { id },
+                    type: db.QueryTypes.UPDATE,
+                }
+            );
+        }
+
+        var data = {
+            verify_code: verify_code,
+            email: mail_details.email,
+            is_verified: 0
+        }
+
+        return res.status(200).json({ data })
+
+    } else {
+        return res.status(400).json({ message: "Invalid Verify Code" });
+    }
+
+}
+
 exports.forgot_password = async (req, res) => {
 
     var { email, recaptcha } = req.body;

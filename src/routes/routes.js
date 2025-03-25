@@ -1,5 +1,6 @@
 const express = require('express');
 const loginrouter = require('../controller/login');
+const registerrouter = require('../controller/register');
 
 const router = express.Router();
 
@@ -13,5 +14,10 @@ router.post('/user/forgot-password', loginrouter.forgot_password);
 router.post('/user/reg-send-otp', loginrouter.reg_send_otp);
 
 router.post('/user/reg-verify-otp', loginrouter.reg_verify_otp);
+
+router.post('/user/email-verify-confirm', loginrouter.email_verify_confirm);
+
+router.post('/user/company-registration', registerrouter.company_registration);
+
 
 module.exports = router;
