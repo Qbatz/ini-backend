@@ -29,18 +29,18 @@ exports.email_verify = async (req, res) => {
     var { email, recaptcha } = req.body;
 
     if (!email) {
-        return res.json({ statusCode: 201, message: "Missing Email Id" })
+        return res.status(400).json({ message: "Missing Email Id" })
     }
 
     if (!recaptcha) {
-        return res.json({ statusCode: 201, message: "Missing Recaptcha Code" })
+        return res.status(400).json({ message: "Missing Recaptcha Code" })
     }
 
     try {
         const email_verify = await UserEmailVerify.findOne({ where: { email } })
 
         if (email_verify) {
-            return res.json({ statusCode: 201, message: "Email Already registered with us" });
+            return res.status(400).json({ message: "Email Already registered with us" });
         } else {
 
             const secretKey = "6LcBN_4qAAAAAK3Z-Hu2Ozx3QyG26w-1Zm_u3Luz";
@@ -59,11 +59,10 @@ exports.email_verify = async (req, res) => {
             }, async (error, response, body) => {
                 if (error) {
                     console.log(error);
-                    return res.json({ success: false, message: "Error verifying reCAPTCHA", error });
+                    return res.status(400).json({ message: "Error verifying reCAPTCHA", error });
                 }
 
                 const data = JSON.parse(body);
-                console.log(data);
 
                 if (data.success) {
 
@@ -83,15 +82,15 @@ exports.email_verify = async (req, res) => {
                     });
 
                     console.log("Verification email sent successfully.");
-                    return res.json({ success: 200, message: "Mail Sent Successfully" });
+                    return res.status(200).json({ message: "Mail Sent Successfully" });
 
                 } else {
-                    return res.json({ success: 201, message: "Failed reCAPTCHA verification" });
+                    return res.status(400).json({ message: "Failed reCAPTCHA verification" });
                 }
             })
         }
     } catch (error) {
-        return res.json({ statusCode: 201, message: error.message });
+        return res.status(400).json({ message: error.message });
     }
 }
 
@@ -100,11 +99,11 @@ exports.forgot_password = async (req, res) => {
     var { email, recaptcha } = req.body;
 
     if (!email) {
-        return res.json({ statusCode: 201, message: "Missing Email Id" })
+        return res.status(400).json({ message: "Missing Email Id" })
     }
 
     if (!recaptcha) {
-        return res.json({ statusCode: 201, message: "Missing Recaptcha Code" })
+        return res.status(400).json({ message: "Missing Recaptcha Code" })
     }
 
     try {
@@ -125,7 +124,7 @@ exports.forgot_password = async (req, res) => {
         }, async (error, response, body) => {
             if (error) {
                 console.log(error);
-                return res.json({ success: false, message: "Error verifying reCAPTCHA", error });
+                return res.status(400).json({ message: "Error verifying reCAPTCHA", error });
             }
 
             const data = JSON.parse(body);
@@ -167,28 +166,118 @@ exports.forgot_password = async (req, res) => {
 
                     console.log("Otp email sent successfully.");
 
-                    return res.json({ success: 200, message: "Check Your Email ID to reset password" });
+                    return res.status(200).json({ message: "Check Your Email ID to reset password" });
                 } else {
-                    return res.json({ statusCode: 400, message: "Record Not Found" });
+                    return res.status(400).json({ message: "Record Not Found" });
                 }
             } else {
-                return res.json({ statusCode: 201, message: "Failed reCAPTCHA verification" });
+                return res.status(400).json({ message: "Failed reCAPTCHA verification" });
             }
         })
 
     } catch (error) {
-        return res.json({ statusCode: 400, message: error.message });
+        return res.status(400).json({ message: error.message });
     }
 }
 
-exports.reg_send_otp = (req, res) => {
+exports.reg_send_otp = async (req, res) => {
 
     var mobile = req.body.mobile;
 
     if (!mobile) {
-        return res.json({ statusCode: 201, message: "Missing Mobile Number" })
+        return res.status(400).json({ message: "Missing Mobile Number" })
     }
 
-    
+    try {
 
+        // var check_query = "SELECT * FROM user_mobile_verify_otp WHERE mobile=:mobile ORDER BY id DESC";
+
+        // var result = await db.query(check_query,
+        //     {
+        //         replacements: { mobile },
+        //         type: db.QueryTypes.SELECT,
+        //     }
+        // );
+
+        // if (result.length > 0) {
+
+        //     var id = result[0].id;
+
+        //     var up_query = "UPDATE user_mobile_verify_otp SET is_verified=2 WHERE id=:id";
+        //     var up_res = await db.query(up_query,
+        //         {
+        //             replacements: { id },
+        //             type: db.QueryTypes.UPDATE,
+        //         }
+        //     );
+        // }
+
+        var otp = generateOtp()
+
+        var insert_query = "INSERT INTO user_mobile_verify_otp (mobile,otp, is_verified,created_on,updated_on,failed_attempt) VALUES (:mobile,:otp,0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,0)";
+
+        await db.query(insert_query,
+            {
+                replacements: { mobile, otp },
+                type: db.QueryTypes.INSERT,
+            }
+        );
+
+        return res.status(200).json({ message: 'OTP sent successfully!', otp: otp });
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+}
+
+exports.reg_verify_otp = async (req, res) => {
+
+    var { mobile, otp } = req.body;
+
+    if (!mobile) {
+        return res.status(400).json({ message: "Missing Mobile Number" })
+    }
+
+    if (!otp) {
+        return res.status(400).json({ message: "Missing OTP Value" })
+    }
+
+    var sql1 = "SELECT * FROM user_mobile_verify_otp WHERE mobile=:mobile ORDER BY id DESC";
+
+    var sql1_response = await db.query(sql1,
+        {
+            replacements: { mobile },
+            type: db.QueryTypes.SELECT,
+        }
+    );
+
+    if (sql1_response.length != 0) {
+
+        var otpRecord = sql1_response[0];
+
+        var is_verified = otpRecord.is_verified;
+
+        if (otpRecord.otp != otp) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        if (is_verified == 1) {
+            return res.status(400).json({ message: "OTP Already Verified" })
+        }
+
+        var id = otpRecord.id;
+
+        var sql2 = "UPDATE user_mobile_verify_otp SET is_verified=1,updated_on=CURRENT_TIMESTAMP WHERE id=:id";
+
+        var sql1_response = await db.query(sql2,
+            {
+                replacements: { id },
+                type: db.QueryTypes.SELECT,
+            }
+        );
+
+        return res.status(200).json({ message: "OTP verified successfully" })
+
+    } else {
+        return res.status(400).json({ message: "Mobile number not found" })
+    }
 }

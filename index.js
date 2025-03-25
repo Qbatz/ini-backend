@@ -24,7 +24,7 @@ app.use(function (req, res, next) {
 // app.use(middleware);
 // const authGroup = require('./src/sync/auth_group');
 
-app.use('/api', require('./src/routes/routes'));
+app.use(require('./src/routes/routes'));
 
 app.listen(process.env.PORT, function () {
     console.log("node is started at : " + process.env.PORT + "")

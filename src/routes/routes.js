@@ -12,4 +12,6 @@ router.post('/user/forgot-password', loginrouter.forgot_password);
 
 router.post('/user/reg-send-otp', loginrouter.reg_send_otp);
 
+router.post('/user/reg-verify-otp', loginrouter.reg_verify_otp);
+
 module.exports = router;
