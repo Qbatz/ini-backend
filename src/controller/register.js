@@ -14,6 +14,20 @@ function hashPassword(password, salt = null, iterations = 260000, keyLength = 32
     return `pbkdf2_sha256$${iterations}$${salt}$${hash}`;
 }
 
+function verifyPassword(password, storedHash) {
+    const parts = storedHash.split('$');
+    if (parts.length !== 4 || parts[0] !== 'pbkdf2_sha256') {
+        throw new Error('Invalid hash format');
+    }
+
+    const iterations = parseInt(parts[1], 10);
+    const salt = parts[2];
+    const storedKey = parts[3];
+
+    const derivedKey = crypto.pbkdf2Sync(password, salt, iterations, 32, 'sha256').toString('base64');
+    return derivedKey === storedKey;
+}
+
 const generateCustomerId = async () => {
 
     let isUnique = false;
@@ -177,5 +191,50 @@ exports.company_registration = async (req, res) => {
 
     } else {
         return res.status(400).json({ message: "Password Does Not Matched" })
+    }
+}
+
+exports.login = async (req, res) => {
+
+    var { company_code, password, username } = req.body;
+
+    if (!company_code) {
+        return res.status(400).json({ message: "Missing Client Id" })
+    }
+
+    if (!username) {
+        return res.status(400).json({ message: "Missing User Id" })
+    }
+
+    if (!password) {
+        return res.status(400).json({ message: "Missing Password" })
+    }
+
+    var sql1 = "SELECT au.id,au.password,au.first_name,au.last_name,au.email,au.username FROM auth_user AS au JOIN user_company AS uc ON au.id=uc.user_id WHERE uc.customer_id=? AND au.is_active=true";
+    var sql1_response = await db.query(sql1,
+        {
+            replacements: [company_code],
+            type: db.QueryTypes.SELECT,
+        }
+    )
+
+    if (sql1_response.length != 0) {
+
+        var db_username = sql1_response[0].username;
+
+        if (username == db_username) {
+
+            var db_password = sql1_response[0].password;
+
+            var check_password = verifyPassword(password, db_password);
+
+            console.log(check_password);
+            
+
+        } else {
+            return res.status(400).json({ message: "Invalid User Name" })
+        }
+    } else {
+        return res.status(400).json({ message: "Invalid Client Id" })
     }
 }

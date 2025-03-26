@@ -82,7 +82,7 @@ exports.email_verify = async (req, res) => {
                     });
 
                     console.log("Verification email sent successfully.");
-                    return res.status(200).json({ message: "Mail Sent Successfully" });
+                    return res.status(200).json({ message: "Mail Sent Successfully", email: email });
 
                 } else {
                     return res.status(400).json({ message: "Failed reCAPTCHA verification" });
