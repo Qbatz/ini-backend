@@ -119,6 +119,17 @@ exports.email_verify_confirm = async (req, res) => {
 
             var id = mail_details.id;
 
+            var expire_time = new Date(mail_details.created_on);
+            var current_time = new Date();
+
+            var time_diff = current_time - expire_time;
+
+            var hours_diff = time_diff / (1000 * 60 * 60);
+
+            if (hours_diff > 24) {
+                return res.status(400).json({ message: "Verification link expired. Please request a new one." });
+            }
+
             var up_query = "UPDATE user_email_verify SET is_verified=1,updated_on=CURRENT_TIMESTAMP WHERE id=:id";
 
             await db.query(up_query,
@@ -229,6 +240,62 @@ exports.forgot_password = async (req, res) => {
     }
 }
 
+exports.reset_password_validcheck = async (req, res) => {
+
+    var { verify_code } = req.body;
+
+    if (!verify_code) {
+        return res.status(400).json({ message: "Missing Verify Code" })
+    }
+
+    try {
+
+        var sql1 = "SELECT * FROM user_forgot_password_otp WHERE otp=?";
+        var sql1_response = await db.query(sql1,
+            {
+                replacements: [verify_code],
+                type: db.QueryTypes.SELECT,
+            }
+        );
+
+        if (sql1_response.length != 0) {
+
+            var is_active = sql1_response[0].is_active;
+            var id = sql1_response[0].id;
+
+            if (is_active == 0) {
+                return res.status(400).json({ message: "Already Code Verified" })
+            }
+
+            var expire_time = new Date(sql1_response[0].created_on);
+            var current_time = new Date();
+
+            var time_diff = current_time - expire_time;
+
+            var hours_diff = time_diff / (1000 * 60 * 60);
+
+            if (hours_diff > 24) {
+                return res.status(400).json({ message: "Code expired. Please request a new one." });
+            }
+
+            var up_query = "UPDATE user_forgot_password_otp SET is_active=0 WHERE id=?";
+
+            await db.query(up_query, {
+                replacements: [id],
+                type: db.QueryTypes.UPDATE
+            })
+
+            return res.status(200).json({ message: "Token Verified" })
+
+        } else {
+            return res.status(400).json({ message: "Invalid Verify Code" })
+        }
+    } catch (error) {
+        return res.status(400).json({ message: error.message })
+    }
+
+}
+
 exports.reg_send_otp = async (req, res) => {
 
     var mobile = req.body.mobile;
@@ -311,6 +378,19 @@ exports.reg_verify_otp = async (req, res) => {
 
         if (is_verified == 1) {
             return res.status(400).json({ message: "OTP Already Verified" })
+        }
+
+        var expire_time = new Date(otpRecord.created_on); // Convert to Date object
+        var current_time = new Date();
+
+        // Calculate the difference in milliseconds
+        var time_diff = current_time - expire_time;
+
+        // Convert milliseconds to hours
+        var hours_diff = time_diff / (1000 * 60 * 60);
+
+        if (hours_diff > 24) {
+            return res.status(400).json({ message: "Otp expired. Please request a new one." });
         }
 
         var id = otpRecord.id;
