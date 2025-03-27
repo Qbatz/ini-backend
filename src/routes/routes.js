@@ -26,4 +26,6 @@ router.post('/user/forgot-clientid', forgotrouter.forget_clientid);
 
 router.post('/auth/token', registerrouter.login);
 
+// router.post('/auth/token', registerrouter.login);
+
 module.exports = router;
