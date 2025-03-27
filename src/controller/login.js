@@ -138,16 +138,24 @@ exports.email_verify_confirm = async (req, res) => {
                     type: db.QueryTypes.UPDATE,
                 }
             );
+
+            var data = {
+                verify_code: verify_code,
+                email: mail_details.email,
+                is_verified: 0
+            }
+
+            return res.status(200).json({ data })
+        } else {
+
+            var data = {
+                verify_code: verify_code,
+                email: mail_details.email,
+                is_verified: 1
+            }
+
+            return res.status(200).json({ data })
         }
-
-        var data = {
-            verify_code: verify_code,
-            email: mail_details.email,
-            is_verified: 0
-        }
-
-        return res.status(200).json({ data })
-
     } else {
         return res.status(400).json({ message: "Invalid Verify Code" });
     }
