@@ -3,6 +3,8 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const jsonwebtoken = require('jsonwebtoken');
+
 const db = require('../config/db');
 
 function hashPassword(password, salt = null, iterations = 260000, keyLength = 32) {
@@ -194,6 +196,10 @@ exports.company_registration = async (req, res) => {
     }
 }
 
+const generateToken = (user) => {
+    return jsonwebtoken.sign({ id: user.id, sub: "access", }, process.env.JWT_SECRET, { expiresIn: '1h' });
+};
+
 exports.login = async (req, res) => {
 
     var { company_code, password, username } = req.body;
@@ -210,31 +216,45 @@ exports.login = async (req, res) => {
         return res.status(400).json({ message: "Missing Password" })
     }
 
-    var sql1 = "SELECT au.id,au.password,au.first_name,au.last_name,au.email,au.username FROM auth_user AS au JOIN user_company AS uc ON au.id=uc.user_id WHERE uc.customer_id=? AND au.is_active=true";
-    var sql1_response = await db.query(sql1,
-        {
-            replacements: [company_code],
-            type: db.QueryTypes.SELECT,
-        }
-    )
+    try {
 
-    if (sql1_response.length != 0) {
+        var sql1 = "SELECT au.id,au.password,au.first_name,au.last_name,au.email,au.username FROM auth_user AS au JOIN user_company AS uc ON au.id=uc.user_id WHERE uc.customer_id=? AND au.username=? AND au.is_active=true";
+        var sql1_response = await db.query(sql1,
+            {
+                replacements: [company_code, username],
+                type: db.QueryTypes.SELECT,
+            }
+        )
 
-        var db_username = sql1_response[0].username;
-
-        if (username == db_username) {
+        if (sql1_response.length != 0) {
 
             var db_password = sql1_response[0].password;
-
             var check_password = verifyPassword(password, db_password);
 
-            console.log(check_password);
-            
+            if (check_password == true) {
 
+                var user_id = sql1_response[0].id;
+
+                var token = generateToken(sql1_response[0])
+
+                var sql2 = "UPDATE auth_user SET last_login=CURRENT_TIMESTAMP WHERE id=?";
+                await db.query(sql2,
+                    {
+                        replacements: [user_id],
+                        type: db.QueryTypes.UPDATE,
+                    }
+                )
+
+                return res.status(200).json({ access: token })
+
+            } else {
+                return res.status(402).json({ detail: "Invalid Password" })
+            }
         } else {
-            return res.status(400).json({ message: "Invalid User Name" })
+            return res.status(401).json({ detail: "No active account found with the given credentials" })
         }
-    } else {
-        return res.status(400).json({ message: "Invalid Client Id" })
+
+    } catch (error) {
+        return res.status(200).json({ message: error.message })
     }
 }

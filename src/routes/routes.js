@@ -24,6 +24,6 @@ router.post('/user/company-registration', registerrouter.company_registration);
 
 router.post('/user/forgot-clientid', forgotrouter.forget_clientid);
 
-router.post('/user/login', registerrouter.login);
+router.post('/auth/token', registerrouter.login);
 
 module.exports = router;
