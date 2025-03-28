@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const connection = require('./src/config/db');
 
 module.exports = (req, res, next) => {
 
@@ -17,8 +16,8 @@ module.exports = (req, res, next) => {
         '/user/email-verify-confirm',
         '/user/company-registration',
         '/user/forgot-clientid',
-        '/auth/token'
-
+        '/auth/token',
+        '/user/reset-password',
     ];
 
     if (openEndpoints.includes(req.originalUrl)) {

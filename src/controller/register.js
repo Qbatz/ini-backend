@@ -258,3 +258,51 @@ exports.login = async (req, res) => {
         return res.status(200).json({ message: error.message })
     }
 }
+
+exports.reset_password = async (req, res) => {
+
+    var { password, password2, verify_code } = req.body;
+
+    if (!password || !password2 || !verify_code) {
+        return res.status(400).json({ message: "Missing Mandatory Fields" })
+    }
+
+    if (password == password2) {
+
+        try {
+
+            var sql1 = "SELECT * FROM user_forgot_password_otp WHERE otp=? AND is_active=0";
+            var sql1_response = await db.query(sql1,
+                {
+                    replacements: [verify_code],
+                    type: db.QueryTypes.SELECT,
+                }
+            );
+
+            if (sql1_response.length != 0) {
+
+                var user_id = sql1_response[0].user_id;
+
+                var new_password = hashPassword(password);
+
+                var sql2 = "UPDATE auth_user SET password=? WHERE id=?"
+
+                await db.query(sql2,
+                    {
+                        replacements: [new_password, user_id],
+                        type: db.QueryTypes.SELECT,
+                    }
+                );
+                return res.status(200).json({ message: "Password Update Successfully" })
+
+            } else {
+                return res.status(400).json({ message: "Invalid Or Expired Verify Code" })
+            }
+
+        } catch (error) {
+            return res.status(400).json({ message: error.message })
+        }
+    } else {
+        return res.status(400).json({ message: "Password Does Not Matched" })
+    }
+}
