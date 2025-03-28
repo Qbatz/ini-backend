@@ -69,11 +69,6 @@ const Vendor = sequelize.define("vendor", {
     timestamps: false
 });
 
-Vendor.beforeCreate(async (vendor) => {
-    const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
-    vendor.vendorid = `VEN-${randomNumber}`;
-});
-
 const AdditionalContactInfo = sequelize.define("additional_contact_info", {
     id: {
         type: DataTypes.BIGINT,

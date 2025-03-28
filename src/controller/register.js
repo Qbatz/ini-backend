@@ -197,7 +197,7 @@ exports.company_registration = async (req, res) => {
 }
 
 const generateToken = (user) => {
-    return jsonwebtoken.sign({ id: user.id, sub: "access", }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return jsonwebtoken.sign({ id: user.id, sub: "access" }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
 exports.login = async (req, res) => {

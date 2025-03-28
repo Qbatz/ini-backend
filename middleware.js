@@ -4,19 +4,21 @@ const connection = require('./src/config/db');
 
 module.exports = (req, res, next) => {
 
-    // let token = req.headers.authorization; // Token
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
     // Not Need to Token
     const openEndpoints = [
-        '/api/user/login',
-        '/api/user/check_mail',
-        '/api/user/verify_forgot_otp',
-        '/api/user/forgot_password',
-        '/api/expenses/all_zoho_expenses',
-        '/api/expenses/webhook_expenses',
-        '/api/user/create_account'
+        '/user/email_verify',
+        '/user/forgot-password',
+        '/user/reset-password-valid-check',
+        '/user/reg-send-otp',
+        '/user/reg-verify-otp',
+        '/user/email-verify-confirm',
+        '/user/company-registration',
+        '/user/forgot-clientid',
+        '/auth/token'
+
     ];
 
     if (openEndpoints.includes(req.originalUrl)) {
@@ -27,44 +29,31 @@ module.exports = (req, res, next) => {
         } else {
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET, { expiresIn: '1h' });
-                req.user_details = decoded;
+                req.user_id = decoded.id
 
-                var created_by = decoded.id;
+                // const currentTime = Math.floor(Date.now() / 1000);
+                // const timeToExpire = decoded.exp - currentTime;
 
-                var sql1 = "SELECT * FROM user_accounts WHERE id=? AND status=1";
-                connection.query(sql1, [created_by], function (err, data) {
-                    if (err) {
-                        return res.status(206).json({ message: "Unable to Get User Details", statusCode: 206 });
-                    } else if (data.length != 0) {
+                // let newToken = null;
 
-                        const currentTime = Math.floor(Date.now() / 1000);
-                        const timeToExpire = decoded.exp - currentTime;
+                // // Refresh the token
+                // if (timeToExpire <= 600) {
+                //     newToken = jwt.sign(
+                //         { id: decoded.id, sub: "access" }, process.env.JWT_SECRET, { expiresIn: '30m' }
+                //     );
+                //     res.locals.refresh_token = newToken;
+                // }
 
-                        let newToken = null;
+                // const originalJson = res.json.bind(res);
 
-                        // Refresh the token
-                        if (timeToExpire <= 600) {
-                            newToken = jwt.sign(
-                                { id: decoded.id, user_name: decoded.user_name, role: decoded.role }, process.env.JWT_SECRET, { expiresIn: '30m' }
-                            );
-                            res.locals.refresh_token = newToken;
-                        }
+                // res.json = (body) => {
+                //     if (newToken) {
+                //         body.refresh_token = newToken;
+                //     }
+                //     originalJson(body);
+                // };
 
-                        const originalJson = res.json.bind(res);
-
-                        res.json = (body) => {
-                            if (newToken) {
-                                body.refresh_token = newToken;
-                            }
-                            originalJson(body);
-                        };
-
-                        next();
-                    } else {
-                        return res.status(206).json({ message: "Invalid User", statusCode: 206 });
-                    }
-                })
-
+                next();
             } catch (err) {
                 res.status(206).json({ message: "Access denied. Invalid Token or Token Expired", statusCode: 206 });
             }

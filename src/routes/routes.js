@@ -2,6 +2,7 @@ const express = require('express');
 const loginrouter = require('../controller/login');
 const registerrouter = require('../controller/register');
 const forgotrouter = require('../controller/forgot');
+const vendorroute = require('../controller/vendor');
 
 const router = express.Router();
 
@@ -25,5 +26,17 @@ router.post('/user/company-registration', registerrouter.company_registration);
 router.post('/user/forgot-clientid', forgotrouter.forget_clientid);
 
 router.post('/auth/token', registerrouter.login);
+
+// Vendor Routes
+
+router.post('/usr/vendor', vendorroute.basic_info);
+
+router.post('/usr/vendor/addBasicInfo', vendorroute.addBasicInfo);
+
+router.post('/usr/vendor/addBankDetails', vendorroute.addBankDetails);
+
+router.post('/usr/vendor/addAddressInfo', vendorroute.addAddressInfo);
+
+router.patch('/usr/vendor/vendorUniqueId', vendorroute.updatevendor_id);
 
 module.exports = router;
