@@ -1,4 +1,6 @@
-const { User } = require('../models/users')
+// const { User } = require('../models/users');
+// const { Vendors } = require('../models/vendors')
+const { Address } = require('../models/address')
 const sequelize = require('../config/db')
 
 async function initDB() {

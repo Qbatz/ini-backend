@@ -1,7 +1,6 @@
 const express = require('express')
 var cors = require('cors');
 require('dotenv').config();
-
 const app = express()
 
 var corsOptions = {
@@ -21,7 +20,8 @@ app.use(function (req, res, next) {
 })
 
 // app.use(middleware);
-// const authGroup = require('./src/sync/auth_group');
+const authGroup = require('./src/sync/auth_group');
+// const dbQuery = require('./db_query');
 
 app.use(require('./src/routes/routes'));
 
