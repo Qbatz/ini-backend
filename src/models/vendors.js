@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require('../config/db')
+const { Address } = require("./address");
 
 const Vendor = sequelize.define("vendor", {
     id: {
@@ -124,6 +125,7 @@ const AdditionalContactInfo = sequelize.define("additional_contact_info", {
     timestamps: false
 });
 
-
+Vendor.hasMany(Address, { foreignKey: "user_id", sourceKey: "vendorid" });
+Address.belongsTo(Vendor, { foreignKey: "user_id", targetKey: "vendorid" });
 
 module.exports = { Vendor, AdditionalContactInfo };

@@ -2,6 +2,8 @@ const express = require('express')
 var cors = require('cors');
 require('dotenv').config();
 const middleware = require('./middleware');
+const associations = require('./src/models/associations');
+
 const app = express()
 
 var corsOptions = {

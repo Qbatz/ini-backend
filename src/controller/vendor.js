@@ -1,5 +1,6 @@
 const { Vendor, AdditionalContactInfo } = require('../models/vendors')
 const { Address, BankDetails } = require('../models/address')
+const { Op, fn, col, where } = require("sequelize");
 
 exports.basic_info = async (req, res) => {
     var { vendor_details, vendor_id } = req.body;
@@ -596,5 +597,161 @@ exports.updatevendor_id = async (req, res) => {
         return res.status(200).json({ message: "Vendor updated successfully", vendor_id: vendor_id });
     } catch (error) {
         return res.status(400).json({ message: error.message });
+    }
+};
+
+exports.get_allvendors = async (req, res) => {
+    try {
+        const createdById = req.user_id;
+        const searchKeyword = req.query.searchKeyword || "";
+
+        const vendors = await Vendor.findAll({
+            where: {
+                created_by_id: createdById,
+                contact_person: where(fn("LOWER", col("contact_person")), {
+                    [Op.like]: `%${searchKeyword.toLowerCase()}%`
+                })
+            },
+            include: [
+                {
+                    model: Address,
+                    attributes: ["address_line1", "address_line2", "address_line3", "postal_code", "landmark", "maplink", "address_type"]
+                },
+                {
+                    model: BankDetails,
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind"]
+                },
+                {
+                    model: AdditionalContactInfo,
+                    attributes: ["name", "number", "email", "designation", "country"]
+                }
+            ]
+        });
+
+        // Format the response
+        const formattedVendors = vendors.map(vendor => ({
+            vendorId: vendor.vendorid,
+            businessName: vendor.business_name,
+            contactPersonName: vendor.contact_person,
+            contactNumber: vendor.contact_number,
+            emailId: vendor.email,
+            designation: vendor.designation,
+            gstvat: vendor.gst_vat,
+            country: vendor.country || null,
+            address: vendor.addresses.map(addr => ({
+                doorNo: addr.address_line1,
+                street: addr.address_line2 || "",
+                locality: addr.address_line3 || "",
+                city: addr.address_line4 || "",
+                postalCode: addr.postal_code,
+                landMark: addr.landmark || "",
+                mapLink: addr.map_link || "",
+                addressType: addr.address_type || ""
+            })),
+            bankDetails: vendor.bank_details.map(bank => ({
+                name: bank.name,
+                accountNo: bank.account_number,
+                bankName: bank.bank_name,
+                ifscCode: bank.ifsc_code,
+                address1: bank.address_line1 || "",
+                address2: bank.address_line2 || "",
+                address3: bank.address_line3 || "",
+                country: bank.country || "",
+                routingBank: bank.routing_bank || "",
+                swiftCode: bank.swift_code || "",
+                routingBankAddress: bank.routing_bank_address || "",
+                routingAccountIndusand: bank.routing_account_indusind || ""
+            })),
+            additionalContactInfo: vendor.additional_contact_infos.map(contact => ({
+                name: contact.name,
+                contactNumber: contact.number,
+                contactEmail: contact.email,
+                designation: contact.designation,
+                country: contact.country || ""
+            }))
+        }));
+
+        res.json({ vendors: formattedVendors });
+    } catch (error) {
+        console.error("Error fetching vendors:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+exports.particularvendor_details = async (req, res) => {
+    try {
+        const vendor_id = req.params.vendor_id;
+
+        if (!vendor_id) {
+            return res.status(400).json({ message: "Missing Vendor Id" });
+        }
+
+        const vendors = await Vendor.findAll({
+            where: {
+                vendorid: vendor_id,
+            },
+            include: [
+                {
+                    model: Address,
+                    attributes: ["address_line1", "address_line2", "address_line3", "postal_code", "landmark", "maplink", "address_type"]
+                },
+                {
+                    model: BankDetails,
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind"]
+                },
+                {
+                    model: AdditionalContactInfo,
+                    attributes: ["name", "number", "email", "designation", "country"]
+                }
+            ]
+        });
+
+        // Format the response
+        const formattedVendors = vendors.map(vendor => ({
+            vendorId: vendor.vendorid,
+            businessName: vendor.business_name,
+            contactPersonName: vendor.contact_person,
+            contactNumber: vendor.contact_number,
+            emailId: vendor.email,
+            designation: vendor.designation,
+            gstvat: vendor.gst_vat,
+            country: vendor.country || null,
+            address: vendor.addresses.map(addr => ({
+                doorNo: addr.address_line1,
+                street: addr.address_line2 || "",
+                locality: addr.address_line3 || "",
+                city: addr.address_line4 || "",
+                postalCode: addr.postal_code,
+                landMark: addr.landmark || "",
+                mapLink: addr.map_link || "",
+                addressType: addr.address_type || ""
+            })),
+            bankDetails: vendor.bank_details.map(bank => ({
+                name: bank.name,
+                accountNo: bank.account_number,
+                bankName: bank.bank_name,
+                ifscCode: bank.ifsc_code,
+                address1: bank.address_line1 || "",
+                address2: bank.address_line2 || "",
+                address3: bank.address_line3 || "",
+                country: bank.country || "",
+                routingBank: bank.routing_bank || "",
+                swiftCode: bank.swift_code || "",
+                routingBankAddress: bank.routing_bank_address || "",
+                routingAccountIndusand: bank.routing_account_indusind || ""
+            })),
+            additionalContactInfo: vendor.additional_contact_infos.map(contact => ({
+                name: contact.name,
+                contactNumber: contact.number,
+                contactEmail: contact.email,
+                designation: contact.designation,
+                country: contact.country || ""
+            }))
+        }));
+
+        res.json({ vendors: formattedVendors });
+    } catch (error) {
+        console.error("Error fetching vendors:", error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };

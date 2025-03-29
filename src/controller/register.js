@@ -120,7 +120,7 @@ exports.company_registration = async (req, res) => {
             if (mail_verify == 1) {
 
                 // Check Phone Number Verified or not
-                var sql2 = "SELECT * FROM user_mobile_verify_otp WHERE mobile=? AND otp=?";
+                var sql2 = "SELECT * FROM user_mobile_verify_otp WHERE mobile=? AND otp=? ";
                 var sql2_response = await db.query(sql2,
                     {
                         replacements: [mobile, otp],
@@ -133,6 +133,18 @@ exports.company_registration = async (req, res) => {
                     var mob_verify = sql2_response[0].is_verified;
 
                     if (mob_verify == 1) {
+
+                        var sql3 = "SELECT * FROM auth_user WHERE (username=? OR email=?) AND is_active=true";
+                        var sql3_response = await db.query(sql3,
+                            {
+                                replacements: [username, email],
+                                type: db.QueryTypes.SELECT,
+                            }
+                        )
+
+                        if (sql3_response.length != 0) {
+                            return res.status(400).json({ message: "Email Id or User Name Already Registered As" })
+                        }
 
                         const hashedPassword = hashPassword(password);
 

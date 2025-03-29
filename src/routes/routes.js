@@ -42,4 +42,8 @@ router.post('/usr/vendor/addAddressInfo', vendorroute.addAddressInfo);
 
 router.patch('/usr/vendor/vendorUniqueId', vendorroute.updatevendor_id);
 
+router.get('/usr/vendor', vendorroute.get_allvendors);
+
+router.get('/usr/vendor/:vendor_id', vendorroute.particularvendor_details);
+
 module.exports = router;
