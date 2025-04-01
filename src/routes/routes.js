@@ -46,6 +46,8 @@ router.get('/usr/vendor', vendorroute.get_allvendors);
 
 router.get('/usr/vendor/:vendor_id', vendorroute.particularvendor_details);
 
-router.delete('/usr/remove_vendor', vendorroute.remove_vendor);
+router.delete('/usr/vendor/:vendor_id', vendorroute.remove_vendor);
+
+// Customer Routes
 
 module.exports = router;

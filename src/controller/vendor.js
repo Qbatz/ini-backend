@@ -3,7 +3,7 @@ const { Address, BankDetails } = require('../models/address')
 const { Op, fn, col, where } = require("sequelize");
 
 exports.basic_info = async (req, res) => {
-    
+
     var { vendor_details, vendor_id } = req.body;
 
     if (!vendor_details) {
@@ -748,26 +748,31 @@ exports.particularvendor_details = async (req, res) => {
 
 exports.remove_vendor = async (req, res) => {
 
-    var vendor_id = req.body.vendor_id;
+    var vendor_id = req.params.vendor_id;
 
     if (!vendor_id) {
         return res.status(400).json({ message: "Missing Vendor Details" })
     }
 
-    var check_vendorid = await Vendor.findOne({ where: { vendorid: vendor_id } });
+    try {
 
-    if (check_vendorid) {
+        var check_vendorid = await Vendor.findOne({ where: { vendorid: vendor_id } });
 
-        await Vendor.update(
-            {
-                is_active: false
-            },
-            { where: { vendorid: vendor_id } }
-        );
+        if (check_vendorid) {
 
-        return res.status(200).json({ message: "Vendor Deleted Successfully" })
+            await Vendor.update(
+                {
+                    is_active: false
+                },
+                { where: { vendorid: vendor_id } }
+            );
 
-    } else {
-        return res.status(400).json({ message: "Invalid Vendor Details" })
+            return res.status(200).json({ message: "Vendor Deleted Successfully" })
+
+        } else {
+            return res.status(400).json({ message: "Invalid Vendor Details" })
+        }
+    } catch (error) {
+        return res.status(400).json({ message: error.message })
     }
 }
