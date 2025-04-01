@@ -7,6 +7,7 @@ const jsonwebtoken = require('jsonwebtoken');
 const { UserForgotPasswordOtp, UserMobileVerifyOtp } = require('../models/login');
 const { UserEmailVerify, AuthUser } = require('../models/users')
 const { UserCompany, UserProfile } = require('../models/register');
+const { Op, fn, col, where } = require("sequelize");
 
 function hashPassword(password, salt = null, iterations = 260000, keyLength = 32) {
     if (!salt) {
@@ -179,7 +180,7 @@ exports.company_registration = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(400).json({ message: "Internal Server Error" });
+        return res.status(400).json({ message: error.message });
     }
 };
 
