@@ -5,10 +5,8 @@ const sequelize = require('../config/db')
 
 async function initDB() {
     try {
-        await sequelize.sync({ force: false }); // `force: true` will drop existing tables and recreate them
-        // console.log('Database synced successfully!');
+        await sequelize.sync({ alter: true }); // `force: true` will drop existing tables and recreate them
     } catch (error) {
-        // console.error('Error syncing database:', error);
     }
 }
 

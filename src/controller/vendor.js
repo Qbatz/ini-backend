@@ -3,6 +3,7 @@ const { Address, BankDetails } = require('../models/address')
 const { Op, fn, col, where } = require("sequelize");
 
 exports.basic_info = async (req, res) => {
+    
     var { vendor_details, vendor_id } = req.body;
 
     if (!vendor_details) {
@@ -19,18 +20,6 @@ exports.basic_info = async (req, res) => {
     }
 
     var created_by_id = req.user_id;
-
-    // if (basic_info) {
-    //     if (!basic_info.email || !basic_info.businessName || !basic_info.designation || !basic_info.contactNumber || !basic_info.contactPersonName || !basic_info.gstvat) {
-    //         return res.status(400).json({ message: "Missing Mandatory Fields for Basic Information" });
-    //     }
-    // }
-
-    // if (bankDetails) {
-    //     if (!bankDetails.name || !bankDetails.accountNo || !bankDetails.bankName || !bankDetails.ifscCode || !bankDetails.swiftCode || !bankDetails.address1) {
-    //         return res.status(400).json({ message: "Missing Mandatory Fields for Basic Information" });
-    //     }
-    // }
 
     try {
         if (basic_info) {
@@ -608,6 +597,7 @@ exports.get_allvendors = async (req, res) => {
         const vendors = await Vendor.findAll({
             where: {
                 created_by_id: createdById,
+                is_active: true,
                 contact_person: where(fn("LOWER", col("contact_person")), {
                     [Op.like]: `%${searchKeyword.toLowerCase()}%`
                 })
@@ -755,3 +745,29 @@ exports.particularvendor_details = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+exports.remove_vendor = async (req, res) => {
+
+    var vendor_id = req.body.vendor_id;
+
+    if (!vendor_id) {
+        return res.status(400).json({ message: "Missing Vendor Details" })
+    }
+
+    var check_vendorid = await Vendor.findOne({ where: { vendorid: vendor_id } });
+
+    if (check_vendorid) {
+
+        await Vendor.update(
+            {
+                is_active: false
+            },
+            { where: { vendorid: vendor_id } }
+        );
+
+        return res.status(200).json({ message: "Vendor Deleted Successfully" })
+
+    } else {
+        return res.status(400).json({ message: "Invalid Vendor Details" })
+    }
+}

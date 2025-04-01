@@ -4,8 +4,9 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const jsonwebtoken = require('jsonwebtoken');
-
-const db = require('../config/db');
+const { UserForgotPasswordOtp, UserMobileVerifyOtp } = require('../models/login');
+const { UserEmailVerify, AuthUser } = require('../models/users')
+const { UserCompany, UserProfile } = require('../models/register');
 
 function hashPassword(password, salt = null, iterations = 260000, keyLength = 32) {
     if (!salt) {
@@ -31,7 +32,6 @@ function verifyPassword(password, storedHash) {
 }
 
 const generateCustomerId = async () => {
-
     let isUnique = false;
     let customerId;
 
@@ -39,13 +39,12 @@ const generateCustomerId = async () => {
         // Generate a random 8-digit number
         customerId = Math.floor(10000000 + Math.random() * 90000000);
 
-        // Check if the customer ID already exists in the database
-        const result = await db.query("SELECT id FROM user_company WHERE customer_id = ?", {
-            replacements: [customerId],
-            type: db.QueryTypes.SELECT
+        const existingCustomer = await UserCompany.findOne({
+            where: { customer_id: customerId },
+            attributes: ['id'],
         });
 
-        if (result.length === 0) {
+        if (!existingCustomer) {
             isUnique = true;
         }
     }
@@ -63,258 +62,212 @@ var transport = nodemailer.createTransport({
 });
 
 exports.company_registration = async (req, res) => {
+    try {
+        const { email, email_verify_token, first_name, last_name, password, password2, phone, mobile, otp, otp_verified, username } = req.body;
 
-    var { email, email_verify_token, first_name, last_name, password, password2, phone, mobile, otp, sent_otp, otp_verified, username } = req.body;
+        // Validation
+        if (!email) return res.status(400).json({ message: "Missing Email Id" });
+        if (!email_verify_token) return res.status(400).json({ message: "Missing Mail Verification Token" });
+        if (!first_name) return res.status(400).json({ message: "Missing First Name" });
+        if (!password) return res.status(400).json({ message: "Missing Password" });
+        if (!password2) return res.status(400).json({ message: "Missing Confirm Password" });
+        if (!phone) return res.status(400).json({ message: "Missing Phone Detail" });
+        if (!mobile) return res.status(400).json({ message: "Missing Mobile Detail" });
+        if (!otp_verified) return res.status(400).json({ message: "Missing OTP Verification Detail" });
+        if (!username) return res.status(400).json({ message: "Missing UserName Detail" });
 
-    if (!email) {
-        return res.status(400).json({ message: "Missing Email Id" })
-    }
-
-    if (!email_verify_token) {
-        return res.status(400).json({ message: "Missing Mail Verification Token" })
-    }
-
-    if (!first_name) {
-        return res.status(400).json({ message: "Missing FirstName" })
-    }
-
-    if (!password) {
-        return res.status(400).json({ message: "Missing Password" })
-    }
-
-    if (!password2) {
-        return res.status(400).json({ message: "Missing Confirm Password" })
-    }
-
-    if (!phone) {
-        return res.status(400).json({ message: "Missing Phone Detail" })
-    }
-
-    if (!mobile) {
-        return res.status(400).json({ message: "Missing Mobile Detail" })
-    }
-
-    if (!otp_verified) {
-        return res.status(400).json({ message: "Missing Mobile Detail" })
-    }
-
-    if (!username) {
-        return res.status(400).json({ message: "Missing UserName Detail" })
-    }
-
-    if (password == password2) {
-
-        // Check email verified or not ??
-        var sql1 = "SELECT * FROM user_email_verify WHERE verify_code=? AND email=?";
-        var sql1_response = await db.query(sql1,
-            {
-                replacements: [email_verify_token, email],
-                type: db.QueryTypes.SELECT,
-            }
-        )
-
-        if (sql1_response.length != 0) {
-
-            var mail_verify = sql1_response[0].is_verified;
-
-            if (mail_verify == 1) {
-
-                // Check Phone Number Verified or not
-                var sql2 = "SELECT * FROM user_mobile_verify_otp WHERE mobile=? AND otp=? ";
-                var sql2_response = await db.query(sql2,
-                    {
-                        replacements: [mobile, otp],
-                        type: db.QueryTypes.SELECT,
-                    }
-                )
-
-                if (sql2_response.length != 0) {
-
-                    var mob_verify = sql2_response[0].is_verified;
-
-                    if (mob_verify == 1) {
-
-                        var sql3 = "SELECT * FROM auth_user WHERE (username=? OR email=?) AND is_active=true";
-                        var sql3_response = await db.query(sql3,
-                            {
-                                replacements: [username, email],
-                                type: db.QueryTypes.SELECT,
-                            }
-                        )
-
-                        if (sql3_response.length != 0) {
-                            return res.status(400).json({ message: "Email Id or User Name Already Registered As" })
-                        }
-
-                        const hashedPassword = hashPassword(password);
-
-                        var insert_authtable = "INSERT INTO auth_user (password,is_superuser,username,first_name,last_name,email,is_staff,is_active,date_joined) VALUES (?,false,?,?,?,?,false,true,CURRENT_TIMESTAMP) RETURNING id";
-                        var insert_authtable_response = await db.query(insert_authtable,
-                            {
-                                replacements: [hashedPassword, username, first_name, last_name, email],
-                                type: db.QueryTypes.INSERT,
-                            }
-                        )
-                        var user_id = insert_authtable_response[0][0].id;
-                        const customerId = await generateCustomerId();
-
-                        var inser_usercompany = "INSERT INTO user_company (company_name,gstin_vat,customer_id,created_on,updated_on,created_by_id,updated_by_id,user_id,same_address,lock_company_info) VALUES (' ',' ',?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,?,?,0,0) RETURNING id";
-                        var usercompany_response = await db.query(inser_usercompany,
-                            {
-                                replacements: [customerId, user_id, user_id, user_id],
-                                type: db.QueryTypes.INSERT,
-                            }
-                        )
-                        var company_id = usercompany_response[0][0].id;
-
-                        var insert_userprofile = "INSERT INTO user_profile (is_owner,gender,phone,mobile,created_on,updated_on,company_id,created_by_id,updated_by_id,user_id) VALUES (1,0,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,?,?,?)";
-                        var usercompany_response = await db.query(insert_userprofile,
-                            {
-                                replacements: [phone, mobile, company_id, user_id, user_id, user_id],
-                                type: db.QueryTypes.INSERT,
-                            }
-                        )
-
-                        var new_url = process.env.SITE_URL;
-                        const htmlFilePath = path.join(__dirname, '../mail_templates', 'register_mail.html');
-
-                        let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
-                        htmlContent = htmlContent.replace('{{first_name}}', first_name).replace('{{last_name}}', last_name).replace('{{customer_id}}', customerId).replace('{{username}}', username).replace('{{site_url}}', new_url);
-
-                        await transport.sendMail({
-                            from: '"MyApp Support" <no-reply@myapp.com>', // Sender email
-                            to: email,
-                            subject: "Inai Login Credentials",
-                            html: htmlContent,
-                        });
-
-                        return res.status(200).json({ message: "<b>Mail Verified</b> Successfully, We have created a unique Client ID.<br/>Please check your registered email and log in to proceed with registration" })
-
-                    } else {
-                        return res.status(400).json({ message: "Mobile Number Not Verified" })
-                    }
-                } else {
-                    return res.status(400).json({ message: "Invalid Mobile or Otp Details" })
-                }
-            } else {
-                return res.status(400).json({ message: "Mail Not Verified" })
-            }
-        } else {
-            return res.status(400).json({ message: "Invalid Mail or Verify Code" })
+        if (password !== password2) {
+            return res.status(400).json({ message: "Password Does Not Match" });
         }
 
-    } else {
-        return res.status(400).json({ message: "Password Does Not Matched" })
+        // Check if email is verified
+        const emailRecord = await UserEmailVerify.findOne({
+            where: { verify_code: email_verify_token, email }
+        });
+
+        if (!emailRecord || emailRecord.is_verified !== 1) {
+            return res.status(400).json({ message: "Invalid Mail or Verify Code" });
+        }
+
+        // Check if mobile is verified
+        const mobileRecord = await UserMobileVerifyOtp.findOne({
+            where: { mobile, otp }
+        });
+
+        if (!mobileRecord || mobileRecord.is_verified !== 1) {
+            return res.status(400).json({ message: "Invalid Mobile or OTP Details" });
+        }
+
+        // Check if user already exists
+        const existingUser = await AuthUser.findOne({
+            where: {
+                [Op.or]: [{ username }, { email }],
+                is_active: true
+            }
+        });
+
+        if (existingUser) {
+            return res.status(400).json({ message: "Email or Username Already Registered" });
+        }
+
+        const hashedPassword = hashPassword(password);
+
+        const newUser = await AuthUser.create({
+            password: hashedPassword,
+            is_superuser: false,
+            username,
+            first_name,
+            last_name,
+            email,
+            is_staff: false,
+            is_active: true,
+            date_joined: new Date()
+        });
+
+        const user_id = newUser.id;
+        const customerId = await generateCustomerId();
+
+        const newCompany = await UserCompany.create({
+            company_name: ' ',
+            gstin_vat: ' ',
+            customer_id: customerId,
+            created_on: new Date(),
+            updated_on: new Date(),
+            created_by_id: user_id,
+            updated_by_id: user_id,
+            user_id,
+            same_address: 0,
+            lock_company_info: 0
+        });
+
+        const company_id = newCompany.id;
+
+        await UserProfile.create({
+            is_owner: 1,
+            gender: 0,
+            phone,
+            mobile,
+            created_on: new Date(),
+            updated_on: new Date(),
+            company_id,
+            created_by_id: user_id,
+            updated_by_id: user_id,
+            user_id
+        });
+
+        // Send email notification
+        const new_url = process.env.SITE_URL;
+        const htmlFilePath = path.join(__dirname, '../mail_templates', 'register_mail.html');
+        let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
+
+        htmlContent = htmlContent
+            .replace('{{first_name}}', first_name)
+            .replace('{{last_name}}', last_name)
+            .replace('{{customer_id}}', customerId)
+            .replace('{{username}}', username)
+            .replace('{{site_url}}', new_url);
+
+        await transport.sendMail({
+            from: '"MyApp Support" <no-reply@myapp.com>',
+            to: email,
+            subject: "Inai Login Credentials",
+            html: htmlContent,
+        });
+
+        return res.status(200).json({
+            message: "<b>Mail Verified</b> Successfully, We have created a unique Client ID.<br/>Please check your registered email and log in to proceed with registration."
+        });
+
+    } catch (error) {
+        return res.status(400).json({ message: "Internal Server Error" });
     }
-}
+};
 
 const generateToken = (user) => {
     return jsonwebtoken.sign({ id: user.id, sub: "access" }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
 exports.login = async (req, res) => {
-
     var { company_code, password, username } = req.body;
 
     if (!company_code) {
-        return res.status(400).json({ message: "Missing Client Id" })
+        return res.status(400).json({ message: "Missing Client Id" });
     }
 
     if (!username) {
-        return res.status(400).json({ message: "Missing User Id" })
+        return res.status(400).json({ message: "Missing User Id" });
     }
 
     if (!password) {
-        return res.status(400).json({ message: "Missing Password" })
+        return res.status(400).json({ message: "Missing Password" });
     }
 
     try {
+        // Fetch user details using Sequelize model
+        const user = await AuthUser.findOne({
+            attributes: ['id', 'password', 'first_name', 'last_name', 'email', 'username'],
+            include: [{
+                model: UserCompany,
+                where: { customer_id: company_code },
+                attributes: []
+            }],
+            where: { username, is_active: true }
+        });
 
-        var sql1 = "SELECT au.id,au.password,au.first_name,au.last_name,au.email,au.username FROM auth_user AS au JOIN user_company AS uc ON au.id=uc.user_id WHERE uc.customer_id=? AND au.username=? AND au.is_active=true";
-        var sql1_response = await db.query(sql1,
-            {
-                replacements: [company_code, username],
-                type: db.QueryTypes.SELECT,
-            }
-        )
-
-        if (sql1_response.length != 0) {
-
-            var db_password = sql1_response[0].password;
-            var check_password = verifyPassword(password, db_password);
-
-            if (check_password == true) {
-
-                var user_id = sql1_response[0].id;
-
-                var token = generateToken(sql1_response[0])
-
-                var sql2 = "UPDATE auth_user SET last_login=CURRENT_TIMESTAMP WHERE id=?";
-                await db.query(sql2,
-                    {
-                        replacements: [user_id],
-                        type: db.QueryTypes.UPDATE,
-                    }
-                )
-
-                return res.status(200).json({ access: token })
-
-            } else {
-                return res.status(402).json({ detail: "Invalid Password" })
-            }
-        } else {
-            return res.status(401).json({ detail: "No active account found with the given credentials" })
+        if (!user) {
+            return res.status(401).json({ detail: "No active account found with the given credentials" });
         }
 
+        // Verify password
+        const check_password = verifyPassword(password, user.password);
+        if (!check_password) {
+            return res.status(402).json({ detail: "Invalid Password" });
+        }
+
+        // Generate token
+        const token = generateToken(user);
+
+        // Update last login time
+        await user.update({ last_login: new Date() });
+
+        return res.status(200).json({ access: token });
+
     } catch (error) {
-        return res.status(200).json({ message: error.message })
+        return res.status(500).json({ message: error.message });
     }
-}
+};
+
 
 exports.reset_password = async (req, res) => {
-
     var { password, password2, verify_code } = req.body;
 
     if (!password || !password2 || !verify_code) {
-        return res.status(400).json({ message: "Missing Mandatory Fields" })
+        return res.status(400).json({ message: "Missing Mandatory Fields" });
     }
 
-    if (password == password2) {
+    if (password !== password2) {
+        return res.status(400).json({ message: "Password Does Not Match" });
+    }
 
-        try {
+    try {
+        const otpEntry = await UserForgotPasswordOtp.findOne({
+            where: { otp: verify_code, is_active: false }
+        });
 
-            var sql1 = "SELECT * FROM user_forgot_password_otp WHERE otp=? AND is_active=0";
-            var sql1_response = await db.query(sql1,
-                {
-                    replacements: [verify_code],
-                    type: db.QueryTypes.SELECT,
-                }
-            );
-
-            if (sql1_response.length != 0) {
-
-                var user_id = sql1_response[0].user_id;
-
-                var new_password = hashPassword(password);
-
-                var sql2 = "UPDATE auth_user SET password=? WHERE id=?"
-
-                await db.query(sql2,
-                    {
-                        replacements: [new_password, user_id],
-                        type: db.QueryTypes.SELECT,
-                    }
-                );
-                return res.status(200).json({ message: "Password Update Successfully" })
-
-            } else {
-                return res.status(400).json({ message: "Invalid Or Expired Verify Code" })
-            }
-
-        } catch (error) {
-            return res.status(400).json({ message: error.message })
+        if (!otpEntry) {
+            return res.status(400).json({ message: "Invalid Or Expired Verify Code" });
         }
-    } else {
-        return res.status(400).json({ message: "Password Does Not Matched" })
+
+        const new_password = hashPassword(password);
+
+        await AuthUser.update(
+            { password: new_password },
+            { where: { id: otpEntry.user_id } }
+        );
+
+        return res.status(200).json({ message: "Password Updated Successfully" });
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
-}
+};
