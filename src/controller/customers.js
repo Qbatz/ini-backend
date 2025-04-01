@@ -179,7 +179,8 @@ exports.all_customers = async (req, res) => {
                     model: AdditionalCustomersContactInfo,
                     attributes: ["name", "number", "email", "designation", "country"]
                 },
-            ]
+            ],
+            order: [['id', 'DESC']]
         });
 
         // Format response safely
@@ -318,4 +319,168 @@ exports.one_customer = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 
-}       
+}
+
+exports.updatecustomer = async (req, res) => {
+    try {
+        const { clientId, businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, bankDetails, additionalContactInfo } = req.body;
+        var updated_by_id = req.user_id;
+
+        if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !CIN || !PAN || !TAN || !statusOfFirm || !natureOfBusiness) {
+            return res.status(400).json({ message: "Missing Required Fields" });
+        }
+
+        if (!clientId) {
+            return res.status(400).json({ message: "Client ID is required" });
+        }
+
+        if (address) {
+            if (!Array.isArray(address) || address.length === 0) {
+                return res.status(400).json({ message: "Invalid Address Details" });
+            }
+
+            for (let addre of address) {
+                if (!addre.doorNo || !addre.postalCode || !addre.addressType) {
+                    return res.status(400).json({ message: "Missing Required Fields in Address Details" });
+                }
+            }
+        }
+
+        if (bankDetails) {
+            if (!Array.isArray(bankDetails) || bankDetails.length === 0) {
+                return res.status(400).json({ message: "Invalid Address Details" });
+            }
+
+            for (let banks of bankDetails) {
+                if (!banks.currency || !banks.accountNo || !banks.bankName || !banks.ifscCode || !banks.address1 || !banks.swiftCode) {
+                    return res.status(400).json({ message: "Missing Required Fields in Bank Details" });
+                }
+            }
+        }
+
+        if (additionalContactInfo) {
+            if (!Array.isArray(additionalContactInfo) || additionalContactInfo.length === 0) {
+                return res.status(400).json({ message: "Invalid Address Details" });
+            }
+
+            for (let adds_detail of additionalContactInfo) {
+                if (!adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
+                    return res.status(400).json({ message: "Missing Required Fields in Additional Contact Info" });
+                }
+            }
+        }
+
+        let customer = await Customer.findOne({ where: { customerid: clientId } });
+
+        if (!customer) {
+            return res.status(404).json({ message: "Customer not found" });
+        }
+
+        await customer.update({
+            business_name: businessName,
+            contact_person: contactPerson,
+            contact_number: Number(contactNumber),
+            email: emailId,
+            designation: designation,
+            gst_vat: gstVat,
+            cin: CIN,
+            pan: PAN,
+            tan: TAN,
+            statusoffirm: statusOfFirm,
+            natureof_business: natureOfBusiness,
+            updated_by_id: updated_by_id
+        });
+
+        if (additionalContactInfo && Array.isArray(additionalContactInfo)) {
+            await AdditionalCustomersContactInfo.destroy({ where: { customerid: clientId } });
+            const additionalContacts = additionalContactInfo.map(contact => ({
+                customerid: clientId,
+                name: contact.name,
+                number: contact.contactNumber,
+                email: contact.contactEmail,
+                designation: contact.designation,
+                country: contact.country || 'IN',
+                country_code: contact.country_code || 91,
+                created_by_id: updated_by_id,
+                updated_by_id: updated_by_id
+            }));
+            await AdditionalCustomersContactInfo.bulkCreate(additionalContacts);
+        }
+
+        if (address && Array.isArray(address)) {
+            await CustomerAddress.destroy({ where: { user_id: clientId } });
+            const addressDetails = address.map(addr => ({
+                user_id: clientId,
+                address_type: addr.addressType,
+                address_line1: addr.doorNo,
+                address_line2: addr.street,
+                address_line3: addr.locality,
+                address_line4: addr.city,
+                postal_code: addr.postalCode,
+                landmark: addr.landMark,
+                maplink: addr.mapLink || null,
+                created_by_id: updated_by_id,
+                updated_by_id: updated_by_id
+            }));
+            await CustomerAddress.bulkCreate(addressDetails);
+        }
+
+        if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
+            await customer_BankDetails.destroy({ where: { user_id: clientId } });
+            const newBank = bankDetails[0];
+            await customer_BankDetails.create({
+                user_id: clientId,
+                name: newBank.name || ' ',
+                currency: newBank.currency,
+                account_number: newBank.accountNo,
+                bank_name: newBank.bankName,
+                ifsc_code: newBank.ifscCode,
+                address_line1: newBank.address1,
+                address_line2: newBank.address2,
+                address_line3: newBank.address3,
+                country: newBank.country || 'IN',
+                routing_bank: newBank.routingBank,
+                swift_code: newBank.swiftCode,
+                routing_bank_address: newBank.routingBankAddress,
+                routing_account_indusind: newBank.routingAccountIndusand,
+                created_by_id: updated_by_id,
+                updated_by_id: updated_by_id
+            });
+        }
+
+        return res.status(200).json({ message: "Customer updated successfully", clientId: clientId });
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+};
+
+exports.delete_customer = async (req, res) => {
+
+    var customer_id = req.params.customer_id;
+
+    if (!customer_id) {
+        return res.status(400).json({ message: "Missing Client Details" })
+    }
+
+    try {
+        var check_customer = await Customer.findOne({ where: { customerid: customer_id } });
+
+        if (check_customer) {
+
+            await Customer.update(
+                {
+                    is_active: false
+                },
+                { where: { customerid: customer_id } }
+            );
+
+            return res.status(200).json({ message: "Customer Deleted Successfully" })
+
+        } else {
+            return res.status(400).json({ message: "Invalid Customer Details" })
+        }
+    } catch (error) {
+        return res.status(400).json({ message: error.message })
+    }
+
+}

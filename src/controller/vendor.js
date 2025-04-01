@@ -615,7 +615,8 @@ exports.get_allvendors = async (req, res) => {
                     model: AdditionalContactInfo,
                     attributes: ["name", "number", "email", "designation", "country"]
                 }
-            ]
+            ],
+            order: [['id', 'DESC']]
         });
 
         // Format the response
