@@ -137,6 +137,7 @@ exports.basic_info = async (req, res) => {
                             country: bankDetails.country || 'IN',
                             routing_bank: bankDetails.routingBank,
                             swift_code: bankDetails.swiftCode,
+                            currency: bankDetails.currency || 1,
                             routing_bank_address: bankDetails.routingBankAddress,
                             routing_account_indusind: bankDetails.routingAccountIndusand,
                             updated_by_id: created_by_id
@@ -156,6 +157,7 @@ exports.basic_info = async (req, res) => {
                         country: bankDetails.country || 'IN',
                         routing_bank: bankDetails.routingBank,
                         swift_code: bankDetails.swiftCode,
+                        currency: bankDetails.currency || 1,
                         routing_bank_address: bankDetails.routingBankAddress,
                         routing_account_indusind: bankDetails.routingAccountIndusand,
                         created_by_id: created_by_id,
@@ -310,7 +312,7 @@ exports.addBankDetails = async (req, res) => {
         }
 
         for (let contact of bankDetails) {
-            if (!contact.name || !contact.bankName || !contact.accountNo || !contact.ifscCode || !contact.address1 || !contact.swiftCode) {
+            if (!contact.bankName || !contact.accountNo || !contact.ifscCode || !contact.address1 || !contact.swiftCode) {
                 return res.status(400).json({ message: "Missing Required Fields in Banking Details" });
             }
         }
@@ -328,7 +330,7 @@ exports.addBankDetails = async (req, res) => {
         if (existingBankDetails) {
             await BankDetails.update(
                 {
-                    name: newbankDetails.name,
+                    name: newbankDetails.name || ' ',
                     account_number: newbankDetails.accountNo,
                     bank_name: newbankDetails.bankName,
                     ifsc_code: newbankDetails.ifscCode,
@@ -338,6 +340,7 @@ exports.addBankDetails = async (req, res) => {
                     country: newbankDetails.country || 'IN',
                     routing_bank: newbankDetails.routingBank,
                     swift_code: newbankDetails.swiftCode,
+                    currency: newbankDetails.currency || 1,
                     routing_bank_address: newbankDetails.routingBankAddress,
                     routing_account_indusind: newbankDetails.routingAccountIndusand,
                     updated_by_id: created_by_id
@@ -360,6 +363,7 @@ exports.addBankDetails = async (req, res) => {
                 country: newbankDetails.country || 'IN',
                 routing_bank: newbankDetails.routingBank,
                 swift_code: newbankDetails.swiftCode,
+                currency: newbankDetails.currency || 1,
                 routing_bank_address: newbankDetails.routingBankAddress,
                 routing_account_indusind: newbankDetails.routingAccountIndusand,
                 created_by_id: created_by_id,
@@ -463,7 +467,7 @@ exports.updatevendor_id = async (req, res) => {
     }
 
     for (let contact of bankDetails) {
-        if (!contact.name || !contact.bankName || !contact.accountNo || !contact.ifscCode || !contact.address1 || !contact.swiftCode) {
+        if (!contact.bankName || !contact.accountNo || !contact.ifscCode || !contact.address1 || !contact.swiftCode) {
             return res.status(400).json({ message: "Missing Required Fields in Banking Details" });
         }
     }
@@ -546,7 +550,8 @@ exports.updatevendor_id = async (req, res) => {
             if (existingBankDetails) {
                 await BankDetails.update(
                     {
-                        name: bankDetails.name,
+                        name: bankDetails.name || ' ',
+                        currency: bankDetails.currency || 1,
                         account_number: bankDetails.accountNo,
                         bank_name: bankDetails.bankName,
                         ifsc_code: bankDetails.ifscCode,
@@ -565,7 +570,8 @@ exports.updatevendor_id = async (req, res) => {
             } else {
                 await BankDetails.create({
                     user_id: vendor_id,
-                    name: bankDetails.name,
+                    name: bankDetails.name || ' ',
+                    currency: bankDetails.currency || 1,
                     account_number: bankDetails.accountNo,
                     bank_name: bankDetails.bankName,
                     ifsc_code: bankDetails.ifscCode,
@@ -609,7 +615,7 @@ exports.get_allvendors = async (req, res) => {
                 },
                 {
                     model: BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency"]
                 },
                 {
                     model: AdditionalContactInfo,
@@ -629,7 +635,7 @@ exports.get_allvendors = async (req, res) => {
             designation: vendor.designation,
             gstvat: vendor.gst_vat,
             country: vendor.country || null,
-            address: vendor.addresses.map(addr => ({
+            address: (vendor.addresses || []).map(addr => ({
                 doorNo: addr.address_line1,
                 street: addr.address_line2 || "",
                 locality: addr.address_line3 || "",
@@ -639,8 +645,8 @@ exports.get_allvendors = async (req, res) => {
                 mapLink: addr.map_link || "",
                 addressType: addr.address_type || ""
             })),
-            bankDetails: vendor.bank_details.map(bank => ({
-                name: bank.name,
+            bankDetails: (vendor.bank_details || []).map(bank => ({
+                name: bank.name || ' ',
                 accountNo: bank.account_number,
                 bankName: bank.bank_name,
                 ifscCode: bank.ifsc_code,
@@ -648,12 +654,13 @@ exports.get_allvendors = async (req, res) => {
                 address2: bank.address_line2 || "",
                 address3: bank.address_line3 || "",
                 country: bank.country || "",
+                currency: bank.currency || 1,
                 routingBank: bank.routing_bank || "",
                 swiftCode: bank.swift_code || "",
                 routingBankAddress: bank.routing_bank_address || "",
                 routingAccountIndusand: bank.routing_account_indusind || ""
             })),
-            additionalContactInfo: vendor.additional_contact_infos.map(contact => ({
+            additionalContactInfo: (vendor.additional_contact_infos || []).map(contact => ({
                 name: contact.name,
                 contactNumber: contact.number,
                 contactEmail: contact.email,
@@ -665,7 +672,7 @@ exports.get_allvendors = async (req, res) => {
         res.json({ vendors: formattedVendors });
     } catch (error) {
         console.error("Error fetching vendors:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+        res.status(400).json({ message: "Internal Server Error" });
     }
 };
 
@@ -688,7 +695,7 @@ exports.particularvendor_details = async (req, res) => {
                 },
                 {
                     model: BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency"]
                 },
                 {
                     model: AdditionalContactInfo,
@@ -707,7 +714,7 @@ exports.particularvendor_details = async (req, res) => {
             designation: vendor.designation,
             gstvat: vendor.gst_vat,
             country: vendor.country || null,
-            address: vendor.addresses.map(addr => ({
+            address: (vendor.addresses || []).map(addr => ({
                 doorNo: addr.address_line1,
                 street: addr.address_line2 || "",
                 locality: addr.address_line3 || "",
@@ -717,7 +724,7 @@ exports.particularvendor_details = async (req, res) => {
                 mapLink: addr.map_link || "",
                 addressType: addr.address_type || ""
             })),
-            bankDetails: vendor.bank_details.map(bank => ({
+            bankDetails: (vendor.bank_details || []).map(bank => ({
                 name: bank.name,
                 accountNo: bank.account_number,
                 bankName: bank.bank_name,
@@ -728,10 +735,11 @@ exports.particularvendor_details = async (req, res) => {
                 country: bank.country || "",
                 routingBank: bank.routing_bank || "",
                 swiftCode: bank.swift_code || "",
+                currency: bank.currency || 1,
                 routingBankAddress: bank.routing_bank_address || "",
                 routingAccountIndusand: bank.routing_account_indusind || ""
             })),
-            additionalContactInfo: vendor.additional_contact_infos.map(contact => ({
+            additionalContactInfo: (vendor.additional_contact_infos || []).map(contact => ({
                 name: contact.name,
                 contactNumber: contact.number,
                 contactEmail: contact.email,
@@ -743,7 +751,7 @@ exports.particularvendor_details = async (req, res) => {
         res.json({ vendors: formattedVendors });
     } catch (error) {
         console.error("Error fetching vendors:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+        res.status(400).json({ message: "Internal Server Error" });
     }
 };
 

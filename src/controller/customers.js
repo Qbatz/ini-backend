@@ -75,7 +75,7 @@ exports.add_customersall = async (req, res) => {
             customerid: customerid,
             designation: designation,
             gst_vat: gstVat,
-            country: country || 'INR',
+            country: country || 'IN',
             cin: CIN,
             pan: PAN,
             tan: TAN,
@@ -244,7 +244,6 @@ exports.one_customer = async (req, res) => {
     if (!customer_id) {
         return res.status(400).json({ message: "Missing Customer Id" });
     }
-
     try {
         const customers = await Customer.findAll({
             where: {
