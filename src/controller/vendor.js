@@ -605,7 +605,7 @@ exports.get_allvendors = async (req, res) => {
             include: [
                 {
                     model: Address,
-                    attributes: ["address_line1", "address_line2", "address_line3", "postal_code", "landmark", "maplink", "address_type"]
+                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type"]
                 },
                 {
                     model: BankDetails,

@@ -78,7 +78,7 @@ const AdditionalContactInfo = sequelize.define("additional_contact_info", {
     },
     vendorid: {
         type: DataTypes.STRING(20),
-        allowNull: false,
+        allowNull: true,
     },
     name: {
         type: DataTypes.STRING(100),
@@ -124,8 +124,5 @@ const AdditionalContactInfo = sequelize.define("additional_contact_info", {
     tableName: "additional_contact_info",
     timestamps: false
 });
-
-Vendor.hasMany(Address, { foreignKey: "user_id", sourceKey: "vendorid" });
-Address.belongsTo(Vendor, { foreignKey: "user_id", targetKey: "vendorid" });
 
 module.exports = { Vendor, AdditionalContactInfo };

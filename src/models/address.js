@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require('../config/db');
-const { Vendor } = require("./vendors");
 
 const Address = sequelize.define("address", {
     id: {
@@ -75,6 +74,11 @@ const BankDetails = sequelize.define("bank_details", {
     user_id: {
         type: DataTypes.STRING(20),
         allowNull: false
+    },
+    currency: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+        defaultValue: 'INR'
     },
     name: {
         type: DataTypes.STRING(100),

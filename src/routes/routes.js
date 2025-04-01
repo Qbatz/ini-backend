@@ -3,6 +3,7 @@ const loginrouter = require('../controller/login');
 const registerrouter = require('../controller/register');
 const forgotrouter = require('../controller/forgot');
 const vendorroute = require('../controller/vendor');
+const customersroute = require('../controller/customers');
 
 const router = express.Router();
 
@@ -49,5 +50,11 @@ router.get('/usr/vendor/:vendor_id', vendorroute.particularvendor_details);
 router.delete('/usr/vendor/:vendor_id', vendorroute.remove_vendor);
 
 // Customer Routes
+
+router.post('/usr/client', customersroute.add_customersall);
+
+router.get('/usr/client', customersroute.all_customers);
+
+router.get('/usr/client/:customer_id', customersroute.one_customer);
 
 module.exports = router;

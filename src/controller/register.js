@@ -252,7 +252,7 @@ exports.reset_password = async (req, res) => {
 
     try {
         const otpEntry = await UserForgotPasswordOtp.findOne({
-            where: { otp: verify_code, is_active: false }
+            where: { otp: verify_code, is_active: 0 }
         });
 
         if (!otpEntry) {
