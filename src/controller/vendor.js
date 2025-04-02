@@ -600,14 +600,33 @@ exports.get_allvendors = async (req, res) => {
         const createdById = req.user_id;
         const searchKeyword = req.query.searchKeyword || "";
 
+        const startDate = req.query.startDate || "";
+        const endDate = req.query.endDate || "";
+
+        let whereCondition = {
+            created_by_id: createdById,
+            is_active: true,
+            contact_person: {
+                [Op.like]: `%${searchKeyword.toLowerCase()}%`
+            }
+        };
+
+        if (startDate && endDate) {
+            whereCondition.created_on = {
+                [Op.between]: [new Date(startDate), new Date(endDate)]
+            };
+        } else if (startDate) {
+            whereCondition.created_on = {
+                [Op.gte]: new Date(startDate) // Greater than or equal to startDate
+            };
+        } else if (endDate) {
+            whereCondition.created_on = {
+                [Op.lte]: new Date(endDate) // Less than or equal to endDate
+            };
+        }
+
         const vendors = await Vendor.findAll({
-            where: {
-                created_by_id: createdById,
-                is_active: true,
-                contact_person: where(fn("LOWER", col("contact_person")), {
-                    [Op.like]: `%${searchKeyword.toLowerCase()}%`
-                })
-            },
+            where: whereCondition,
             include: [
                 {
                     model: Address,
