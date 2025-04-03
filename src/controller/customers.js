@@ -123,30 +123,56 @@ exports.add_customersall = async (req, res) => {
             await CustomerAddress.bulkCreate(addressDetails);
         }
 
-
         if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
 
-            var new_bankDetails = bankDetails[0]
+            await customer_BankDetails.destroy({ where: { user_id: customerid } });
 
-            await customer_BankDetails.create({
+            var bank_details = bankDetails.map(banks => ({
                 user_id: customerid,
-                name: new_bankDetails.name || ' ',
-                currency: new_bankDetails.currency,
-                account_number: new_bankDetails.accountNo,
-                bank_name: new_bankDetails.bankName,
-                ifsc_code: new_bankDetails.ifscCode,
-                address_line1: new_bankDetails.address1,
-                address_line2: new_bankDetails.address2,
-                address_line3: new_bankDetails.address3,
-                country: new_bankDetails.country || 'IN',
-                routing_bank: new_bankDetails.routingBank,
-                swift_code: new_bankDetails.swiftCode,
-                routing_bank_address: new_bankDetails.routingBankAddress,
-                routing_account_indusind: new_bankDetails.routingAccountIndusand,
+                name: banks.name,
+                account_number: banks.accountNo,
+                bank_name: banks.bankName,
+                ifsc_code: banks.ifscCode,
+                address_line1: banks.address1,
+                address_line2: banks.address2,
+                address_line3: banks.address3,
+                country: banks.country || 'IN',
+                routing_bank: banks.routingBank,
+                swift_code: banks.swiftCode,
+                currency: banks.currency || 1,
+                isPrimary: banks.isPrimary || false,
+                routing_bank_address: banks.routingBankAddress,
+                routing_account_indusind: banks.routingAccountIndusand,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
-            });
+            }));
+
+            await customer_BankDetails.bulkCreate(bank_details);
         }
+
+        // if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
+
+        //     var new_bankDetails = bankDetails[0]
+
+        //     await customer_BankDetails.create({
+        //         user_id: customerid,
+        //         name: new_bankDetails.name || ' ',
+        //         currency: new_bankDetails.currency,
+        //         account_number: new_bankDetails.accountNo,
+        //         bank_name: new_bankDetails.bankName,
+        //         ifsc_code: new_bankDetails.ifscCode,
+        //         address_line1: new_bankDetails.address1,
+        //         address_line2: new_bankDetails.address2,
+        //         address_line3: new_bankDetails.address3,
+        //         country: new_bankDetails.country || 'IN',
+        //         routing_bank: new_bankDetails.routingBank,
+        //         swift_code: new_bankDetails.swiftCode,
+        //         routing_bank_address: new_bankDetails.routingBankAddress,
+        //         routing_account_indusind: new_bankDetails.routingAccountIndusand,
+        //         created_by_id: created_by_id,
+        //         updated_by_id: created_by_id
+        //     });
+        // }
 
         return res.status(200).json({ message: "Client added successfully", clientId: customerid });
     } catch (error) {
