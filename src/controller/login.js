@@ -45,10 +45,6 @@ exports.email_verify = async (req, res) => {
 
             const secretKey = process.env.SECRET_KEY;
 
-            console.log('====================================');
-            console.log(secretKey);
-            console.log('====================================');
-
             const url = "https://www.google.com/recaptcha/api/siteverify";
 
             const formData = {
@@ -71,7 +67,7 @@ exports.email_verify = async (req, res) => {
                 if (data.success) {
 
                     const verify_code = generateCode();
-                    var url = process.env.SECRET_KEY
+                    var url = process.env.SITE_URL;
                     const htmlFilePath = path.join(__dirname, '../mail_templates', 'verify_mail.html');
                     let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
                     htmlContent = htmlContent.replace('{{site_url}}', url).replace('{{verify_code}}', verify_code).replace('{{site_url}}', url).replace('{{verify_code}}', verify_code);
@@ -191,7 +187,7 @@ exports.forgot_password = async (req, res) => {
             }
 
             const otp = generateOtp();
-            const new_url = process.env.SECRET_KEY;
+            const new_url = process.env.SITE_URL;
 
             const { id: user_id, first_name, last_name } = email_verify;
 
