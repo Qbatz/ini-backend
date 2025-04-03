@@ -145,4 +145,51 @@ const BankDetails = sequelize.define("bank_details", {
     timestamps: false
 });
 
-module.exports = { Address, BankDetails };
+const AddressType = sequelize.define(
+    "AddressType",
+    {
+        id: {
+            type: DataTypes.BIGINT,
+            autoIncrement: true,
+            primaryKey: true,
+        },
+        type: {
+            type: DataTypes.STRING(50),
+            allowNull: false,
+        },
+        created_on: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW,
+        },
+    },
+    {
+        tableName: "address_types",
+        timestamps: false,
+    }
+);
+
+const seedAddressTypes = async () => {
+    const defaultValues = [
+        { type: "Office Address" },
+        { type: "Shipping Address" },
+        { type: "Home Address" },
+    ];
+
+    for (const value of defaultValues) {
+        await AddressType.findOrCreate({
+            where: { type: value.type },
+            defaults: value
+        });
+    }
+};
+
+sequelize.sync().then(async () => {
+    try {
+        await seedAddressTypes();
+        // console.log("Static values inserted successfully.");
+    } catch (error) {
+        console.error("Error inserting static values:", error);
+    }
+});
+
+module.exports = { Address, BankDetails, AddressType };

@@ -41,7 +41,7 @@ router.post('/usr/vendor/addBankDetails', vendorroute.addBankDetails);
 
 router.post('/usr/vendor/addAddressInfo', vendorroute.addAddressInfo);
 
-router.patch('/usr/vendor/vendorUniqueId', vendorroute.updatevendor_id);
+router.patch('/usr/vendor/:vendor_id', vendorroute.updatevendor_id);
 
 router.get('/usr/vendor', vendorroute.get_allvendors);
 
@@ -53,12 +53,14 @@ router.delete('/usr/vendor/:vendor_id', vendorroute.remove_vendor);
 
 router.post('/usr/client', customersroute.add_customersall);
 
-router.patch('/usr/client/vendorUniqueId', customersroute.updatecustomer);
+router.patch('/usr/client/:customer_id', customersroute.updatecustomer);
 
 router.get('/usr/client', customersroute.all_customers);
 
 router.get('/usr/client/:customer_id', customersroute.one_customer);
 
 router.delete('/usr/client/:customer_id', customersroute.delete_customer);
+
+
 
 module.exports = router;

@@ -1,5 +1,5 @@
 const { Vendor, AdditionalContactInfo } = require("./vendors");
-const { Address, BankDetails } = require("./address");
+const { Address, BankDetails, AddressType } = require("./address");
 const { AuthUser } = require("./users");
 const { UserCompany } = require("./register");
 const { Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails } = require("./customers");
@@ -27,4 +27,15 @@ customer_BankDetails.belongsTo(Customer, { foreignKey: "user_id", targetKey: "cu
 Customer.hasMany(AdditionalCustomersContactInfo, { foreignKey: "customerid", sourceKey: "customerid" });
 AdditionalCustomersContactInfo.belongsTo(Customer, { foreignKey: "customerid", targetKey: "customerid" });
 
-module.exports = { Vendor, Address, BankDetails, AdditionalContactInfo, AuthUser, UserCompany, Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails };
+CustomerAddress.belongsTo(AddressType, {
+    foreignKey: "address_type",
+    as: "AddressType", // Alias must match the query include
+});
+
+AddressType.hasMany(CustomerAddress, {
+    foreignKey: "address_type",
+    as: "customer_addresses",
+});
+
+
+module.exports = { Vendor, Address, BankDetails, AdditionalContactInfo, AuthUser, UserCompany, Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails, AddressType };

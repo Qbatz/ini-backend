@@ -1,4 +1,5 @@
 const { Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails } = require('../models/customers')
+const { AddressType } = require('../models/address');
 const { Op, fn, col, where } = require("sequelize");
 
 exports.add_customersall = async (req, res) => {
@@ -187,7 +188,14 @@ exports.all_customers = async (req, res) => {
             include: [
                 {
                     model: CustomerAddress,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type"]
+                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type"],
+                    include: [
+                        {
+                            model: AddressType,
+                            as: "AddressType",
+                            attributes: ["type"],
+                        },
+                    ],
                 },
                 {
                     model: customer_BankDetails,
@@ -223,7 +231,7 @@ exports.all_customers = async (req, res) => {
                 postalCode: addr.postal_code || "",
                 landMark: addr.landmark || "",
                 mapLink: addr.maplink || "",
-                addressType: addr.address_type || ""
+                addressType: addr.AddressType ? addr.AddressType.type : ""
             })),
             bankDetails: (customer.customer_bank_details || []).map(bank => ({
                 name: bank.name || "",
@@ -270,7 +278,14 @@ exports.one_customer = async (req, res) => {
             include: [
                 {
                     model: CustomerAddress,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type"]
+                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type"],
+                    include: [
+                        {
+                            model: AddressType,
+                            as: "AddressType",
+                            attributes: ["type"],
+                        },
+                    ],
                 },
                 {
                     model: customer_BankDetails,
@@ -295,8 +310,8 @@ exports.one_customer = async (req, res) => {
             CIN: customer.cin || "",
             PAN: customer.pan || "",
             TAN: customer.tan || "",
-            statusOfFirm: customer.LegalStatus?.type || "",
-            natureOfBusiness: customer.NameofBussiness?.type || "",
+            statusOfFirm: customer.statusoffirm || "",
+            natureOfBusiness: customer.natureof_business || "",
             address: (customer.customer_addresses || []).map(addr => ({
                 doorNo: addr.address_line1 || "",
                 street: addr.address_line2 || "",
@@ -305,7 +320,7 @@ exports.one_customer = async (req, res) => {
                 postalCode: addr.postal_code || "",
                 landMark: addr.landmark || "",
                 mapLink: addr.maplink || "",
-                addressType: addr.address_type || ""
+                addressType: addr.AddressType ? addr.AddressType.type : ""
             })),
             bankDetails: (customer.customer_bank_details || []).map(bank => ({
                 name: bank.name || "",
@@ -330,7 +345,7 @@ exports.one_customer = async (req, res) => {
             }))
         }));
 
-        res.json({ customers: formattedCustomers });
+        res.json(formattedCustomers[0] || {});
     } catch (error) {
         console.error("Error fetching customers:", error);
         res.status(400).json({ message: error.message });
@@ -339,8 +354,12 @@ exports.one_customer = async (req, res) => {
 }
 
 exports.updatecustomer = async (req, res) => {
+
     try {
-        const { clientId, businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, bankDetails, additionalContactInfo } = req.body;
+
+        var clientId = req.params.customer_id || req.body.clientId
+
+        const { businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, bankDetails, additionalContactInfo } = req.body;
         var updated_by_id = req.user_id;
 
         if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !CIN || !PAN || !TAN || !statusOfFirm || !natureOfBusiness) {
