@@ -438,7 +438,7 @@ exports.addAddressInfo = async (req, res) => {
 
 exports.updatevendor_id = async (req, res) => {
 
-    var vendor_id = req.params.vendor_id || req.body.vendor_id
+    var vendor_id = req.params.vendor_id || req.body.vendor_id;
 
     var { businessName, contactPersonName, contactNumber, emailId, designation, gstvat, country, address, bankDetails, additionalContactInfo } = req.body;
 
@@ -489,6 +489,17 @@ exports.updatevendor_id = async (req, res) => {
 
         if (!verify_vendor) {
             return res.status(400).json({ message: "Invalid Vendor ID" });
+        }
+
+        const verify_customer = await Vendor.findOne({
+            where: {
+                email: emailId,
+                vendorid: { [Op.ne]: vendor_id }
+            }
+        });
+
+        if (verify_customer) {
+            return res.status(400).json({ message: "Mail Id Already Registered Us" });
         }
 
         await Vendor.update(

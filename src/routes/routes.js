@@ -61,6 +61,11 @@ router.get('/usr/client/:customer_id', customersroute.one_customer);
 
 router.delete('/usr/client/:customer_id', customersroute.delete_customer);
 
+router.post('/usr/client/addBasicInfo', customersroute.addBasicInfo);
+
+router.post('/usr/client/addBankDetails', customersroute.addBankDetails);
+
+router.post('/usr/client/addAddressInfo', customersroute.addAddressInfo);
 
 
 module.exports = router;

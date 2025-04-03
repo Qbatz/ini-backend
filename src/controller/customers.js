@@ -412,6 +412,17 @@ exports.updatecustomer = async (req, res) => {
             return res.status(404).json({ message: "Customer not found" });
         }
 
+        const verify_customer = await Customer.findOne({
+            where: {
+                email: emailId,
+                customerid: { [Op.ne]: clientId }
+            }
+        });
+
+        if (verify_customer) {
+            return res.status(400).json({ message: "Mail Id Already Registered Us" });
+        }
+
         await customer.update({
             business_name: businessName,
             contact_person: contactPerson,
@@ -519,4 +530,295 @@ exports.delete_customer = async (req, res) => {
         return res.status(400).json({ message: error.message })
     }
 
+}
+
+exports.addBasicInfo = async (req, res) => {
+
+    const { customer_id, businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, additionalContactInfo, country_code, country } = req.body;
+
+    if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !CIN || !PAN || !TAN || !statusOfFirm || !natureOfBusiness) {
+        return res.status(400).json({ message: "Missing Required Fields" });
+    }
+
+    if (additionalContactInfo) {
+        if (!Array.isArray(additionalContactInfo) || additionalContactInfo.length === 0) {
+            return res.status(400).json({ message: "Invalid Address Details" });
+        }
+
+        for (let adds_detail of additionalContactInfo) {
+            if (!adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
+                return res.status(400).json({ message: "Missing Required Fields in Additional Contact Info" });
+            }
+        }
+    }
+
+    var updated_by_id = req.user_id;
+
+    try {
+        if (!customer_id) {
+
+            const verify_customer = await Customer.findOne({ where: { email: emailId } });
+
+            if (verify_customer) {
+                return res.status(400).json({ message: "Mail Id Already Registered Us" });
+            }
+
+            let customerid;
+            let isUnique = false;
+
+            while (!isUnique) {
+                const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
+                customerid = `CUS-${randomNumber}`;
+
+                const existingCustomer = await Customer.findOne({ where: { email: emailId } });
+
+                if (!existingCustomer) {
+                    isUnique = true;
+                }
+            }
+
+            var new_customer = await Customer.create({
+                business_name: businessName,
+                contact_person: contactPerson,
+                contact_number: Number(contactNumber),
+                email: emailId,
+                customerid: customerid,
+                designation: designation,
+                gst_vat: gstVat,
+                country: country || 'IN',
+                cin: CIN,
+                pan: PAN,
+                tan: TAN,
+                statusoffirm: statusOfFirm,
+                natureof_business: natureOfBusiness,
+                country_code: country_code || 91,
+                created_by_id: updated_by_id,
+                updated_by_id: updated_by_id
+            });
+
+            if (additionalContactInfo && Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
+
+                await AdditionalCustomersContactInfo.destroy({ where: { customerid: customer_id } });
+
+                var additionalContacts = additionalContactInfo.map(contact => ({
+                    customerid: customer_id,
+                    name: contact.name,
+                    number: contact.contactNumber,
+                    email: contact.contactEmail,
+                    designation: contact.designation,
+                    country: contact.country || 'IN',
+                    country_code: contact.country_code || 91,
+                    created_by_id: updated_by_id,
+                    updated_by_id: updated_by_id
+                }));
+                await AdditionalCustomersContactInfo.bulkCreate(additionalContacts);
+
+            }
+
+            return res.status(200).json({ message: "Client added successfully", clientId: customerid });
+
+        } else {
+
+            let customer = await Customer.findOne({ where: { customerid: customer_id } });
+
+            if (!customer) {
+                return res.status(404).json({ message: "Customer not found" });
+            }
+
+            const verify_customer = await Customer.findOne({
+                where: {
+                    email: emailId,
+                    customerid: { [Op.ne]: customer_id }
+                }
+            });
+
+            if (verify_customer) {
+                return res.status(400).json({ message: "Mail Id Already Registered Us" });
+            }
+
+            await customer.update({
+                business_name: businessName,
+                contact_person: contactPerson,
+                contact_number: Number(contactNumber),
+                email: emailId,
+                designation: designation,
+                gst_vat: gstVat,
+                cin: CIN,
+                pan: PAN,
+                tan: TAN,
+                statusoffirm: statusOfFirm,
+                natureof_business: natureOfBusiness,
+                updated_by_id: updated_by_id
+            },
+                { where: { customerid: customer_id } }
+            );
+
+            if (additionalContactInfo && Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
+
+                await AdditionalCustomersContactInfo.destroy({ where: { customerid: customer_id } });
+
+                var additionalContacts = additionalContactInfo.map(contact => ({
+                    customerid: customer_id,
+                    name: contact.name,
+                    number: contact.contactNumber,
+                    email: contact.contactEmail,
+                    designation: contact.designation,
+                    country: contact.country || 'IN',
+                    country_code: contact.country_code || 91,
+                    created_by_id: updated_by_id,
+                    updated_by_id: updated_by_id
+                }));
+                await AdditionalCustomersContactInfo.bulkCreate(additionalContacts);
+
+            }
+
+            return res.status(200).json({ message: "Client Updated successfully", clientId: customer_id });
+        }
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
+    }
+}
+
+exports.addBankDetails = async (req, res) => {
+
+    var { clientId, bankDetails } = req.body;
+
+    var updated_by_id = req.user_id;
+
+    if (!clientId) {
+        return res.status(400).json({ message: "Client ID is required" });
+    }
+
+    if (!bankDetails) {
+        return res.status(400).json({ message: "Missing Bank Details" });
+    }
+
+    if (bankDetails) {
+        if (!Array.isArray(bankDetails) || bankDetails.length === 0) {
+            return res.status(400).json({ message: "Invalid Address Details" });
+        }
+
+        for (let banks of bankDetails) {
+            if (!banks.currency || !banks.accountNo || !banks.bankName || !banks.ifscCode || !banks.address1 || !banks.swiftCode) {
+                return res.status(400).json({ message: "Missing Required Fields in Bank Details" });
+            }
+        }
+    }
+
+    let customer = await Customer.findOne({ where: { customerid: clientId } });
+
+    if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+    }
+
+    try {
+        var new_bankDetails = bankDetails[0]
+        var existingBankDetails = await customer_BankDetails.findOne({ where: { user_id: clientId } });
+
+        if (existingBankDetails) {
+
+            await customer_BankDetails.update({
+                user_id: clientId,
+                name: newBank.name || ' ',
+                currency: newBank.currency,
+                account_number: newBank.accountNo,
+                bank_name: newBank.bankName,
+                ifsc_code: newBank.ifscCode,
+                address_line1: newBank.address1,
+                address_line2: newBank.address2,
+                address_line3: newBank.address3,
+                country: newBank.country || 'IN',
+                routing_bank: newBank.routingBank,
+                swift_code: newBank.swiftCode,
+                routing_bank_address: newBank.routingBankAddress,
+                routing_account_indusind: newBank.routingAccountIndusand,
+                created_by_id: updated_by_id,
+                updated_by_id: updated_by_id
+            },
+                { where: { user_id: clientId } }
+            );
+
+        } else {
+
+            await customer_BankDetails.create({
+                user_id: clientId,
+                name: new_bankDetails.name || ' ',
+                currency: new_bankDetails.currency,
+                account_number: new_bankDetails.accountNo,
+                bank_name: new_bankDetails.bankName,
+                ifsc_code: new_bankDetails.ifscCode,
+                address_line1: new_bankDetails.address1,
+                address_line2: new_bankDetails.address2,
+                address_line3: new_bankDetails.address3,
+                country: new_bankDetails.country || 'IN',
+                routing_bank: new_bankDetails.routingBank,
+                swift_code: new_bankDetails.swiftCode,
+                routing_bank_address: new_bankDetails.routingBankAddress,
+                routing_account_indusind: new_bankDetails.routingAccountIndusand,
+                created_by_id: updated_by_id,
+                updated_by_id: updated_by_id
+            });
+
+            return res.status(200).json({ message: "Bank Details added", clientId: clientId });
+
+        }
+    } catch (error) {
+        return res.status(404).json({ message: error.message });
+    }
+}
+
+exports.addAddressInfo = async (req, res) => {
+
+    var { clientId, address } = req.body;
+    var updated_by_id = req.user_id;
+
+    if (!clientId) {
+        return res.status(400).json({ message: "Client ID is required" });
+    }
+
+    if (!address) {
+        return res.status(400).json({ message: "Missing Address Details" });
+    }
+
+    if (address) {
+        if (!Array.isArray(address) || address.length === 0) {
+            return res.status(400).json({ message: "Invalid Address Details" });
+        }
+
+        for (let addre of address) {
+            if (!addre.doorNo || !addre.postalCode || !addre.addressType) {
+                return res.status(400).json({ message: "Missing Required Fields in Address Details" });
+            }
+        }
+    }
+
+    let customer = await Customer.findOne({ where: { customerid: clientId } });
+
+    if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+    }
+
+    try {
+
+        await CustomerAddress.destroy({ where: { user_id: clientId } });
+        const addressDetails = address.map(addr => ({
+            user_id: clientId,
+            address_type: addr.addressType,
+            address_line1: addr.doorNo,
+            address_line2: addr.street,
+            address_line3: addr.locality,
+            address_line4: addr.city,
+            postal_code: addr.postalCode,
+            landmark: addr.landMark,
+            maplink: addr.mapLink || null,
+            created_by_id: updated_by_id,
+            updated_by_id: updated_by_id
+        }));
+        await CustomerAddress.bulkCreate(addressDetails);
+
+        return res.status(200).json({ message: "Addresses Added", clientId: clientId });
+
+    } catch (error) {
+        return res.status(404).json({ message: error.message });
+    }
 }
