@@ -43,7 +43,11 @@ exports.email_verify = async (req, res) => {
             return res.status(400).json({ message: "Email Already registered with us" });
         } else {
 
-            const secretKey = "6LcBN_4qAAAAAK3Z-Hu2Ozx3QyG26w-1Zm_u3Luz";
+            const secretKey = process.env.SECRET_KEY;
+
+            console.log('====================================');
+            console.log(secretKey);
+            console.log('====================================');
 
             const url = "https://www.google.com/recaptcha/api/siteverify";
 
@@ -67,7 +71,7 @@ exports.email_verify = async (req, res) => {
                 if (data.success) {
 
                     const verify_code = generateCode();
-                    var url = process.env.SITE_URL
+                    var url = process.env.SECRET_KEY
                     const htmlFilePath = path.join(__dirname, '../mail_templates', 'verify_mail.html');
                     let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
                     htmlContent = htmlContent.replace('{{site_url}}', url).replace('{{verify_code}}', verify_code).replace('{{site_url}}', url).replace('{{verify_code}}', verify_code);
@@ -160,7 +164,7 @@ exports.forgot_password = async (req, res) => {
             return res.status(400).json({ message: "Missing Recaptcha Code" });
         }
 
-        const secretKey = "6LcBN_4qAAAAAK3Z-Hu2Ozx3QyG26w-1Zm_u3Luz";
+        const secretKey = process.env.SECRET_KEY;
         const url = "https://www.google.com/recaptcha/api/siteverify";
 
         request.post({
@@ -187,7 +191,7 @@ exports.forgot_password = async (req, res) => {
             }
 
             const otp = generateOtp();
-            const new_url = process.env.SITE_URL;
+            const new_url = process.env.SECRET_KEY;
 
             const { id: user_id, first_name, last_name } = email_verify;
 

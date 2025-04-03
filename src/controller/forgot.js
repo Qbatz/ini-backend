@@ -27,7 +27,8 @@ exports.forget_clientid = async (req, res) => {
     }
 
     try {
-        const secretKey = "6LcBN_4qAAAAAK3Z-Hu2Ozx3QyG26w-1Zm_u3Luz";
+        const secretKey = process.env.SECRET_KEY;
+
         const url = "https://www.google.com/recaptcha/api/siteverify";
 
         request.post({

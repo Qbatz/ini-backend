@@ -213,8 +213,8 @@ exports.all_customers = async (req, res) => {
             CIN: customer.cin || "",
             PAN: customer.pan || "",
             TAN: customer.tan || "",
-            statusOfFirm: customer.LegalStatus?.type || "",
-            natureOfBusiness: customer.NameofBussiness?.type || "",
+            statusOfFirm: customer.statusoffirm || "",
+            natureOfBusiness: customer.natureof_business || "",
             address: (customer.customer_addresses || []).map(addr => ({
                 doorNo: addr.address_line1 || "",
                 street: addr.address_line2 || "",
