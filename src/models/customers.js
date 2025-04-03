@@ -48,7 +48,7 @@ const Customer = sequelize.define("customers", {
     statusoffirm: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        
+
     },
     natureof_business: {
         type: DataTypes.STRING(50),
@@ -344,6 +344,10 @@ const customer_BankDetails = sequelize.define("customer_bank_details", {
     },
     routing_account_indusind: {
         type: DataTypes.STRING(200),
+    },
+    isPrimary: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
     is_active: {
         type: DataTypes.BOOLEAN,

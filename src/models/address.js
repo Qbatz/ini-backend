@@ -122,6 +122,10 @@ const BankDetails = sequelize.define("bank_details", {
     routing_account_indusind: {
         type: DataTypes.STRING(200),
     },
+    isPrimary: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
     is_active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
