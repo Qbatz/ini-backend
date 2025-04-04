@@ -225,7 +225,8 @@ exports.all_customers = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary"],
+                    order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalCustomersContactInfo,
@@ -270,6 +271,7 @@ exports.all_customers = async (req, res) => {
                 country: bank.country || "",
                 routingBank: bank.routing_bank || "",
                 swiftCode: bank.swift_code || "",
+                isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
                 routingAccountIndusand: bank.routing_account_indusind || ""
             })),
@@ -315,13 +317,14 @@ exports.one_customer = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary"]
                 },
                 {
                     model: AdditionalCustomersContactInfo,
                     attributes: ["name", "number", "email", "designation", "country"]
                 },
-            ]
+            ],
+            order: [[customer_BankDetails, "isPrimary", "DESC"]]
         });
 
         // Format response safely
@@ -359,6 +362,7 @@ exports.one_customer = async (req, res) => {
                 country: bank.country || "",
                 routingBank: bank.routing_bank || "",
                 swiftCode: bank.swift_code || "",
+                isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
                 routingAccountIndusand: bank.routing_account_indusind || ""
             })),
