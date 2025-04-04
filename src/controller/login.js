@@ -102,7 +102,6 @@ exports.email_verify_confirm = async (req, res) => {
             return res.status(400).json({ message: "Missing Verify Code" });
         }
 
-        // Fetch user verification details
         const mail_details = await UserEmailVerify.findOne({
             where: { verify_code }
         });
@@ -121,19 +120,19 @@ exports.email_verify_confirm = async (req, res) => {
             });
         }
 
-        const expire_time = new Date(mail_details.created_on);
-        const current_time = new Date();
-        const hours_diff = (current_time - expire_time) / (1000 * 60 * 60);
+        // const expire_time = new Date(mail_details.created_on);
+        // const current_time = new Date();
+        // const hours_diff = (current_time - expire_time) / (1000 * 60 * 60);
 
-        if (hours_diff > 24) {
-            return res.status(400).json({ message: "Verification link expired. Please request a new one." });
-        }
+        // if (hours_diff > 24) {
+        //     return res.status(400).json({ message: "Verification link expired. Please request a new one." });
+        // }
 
         // Update verification status
-        await UserEmailVerify.update(
-            { is_verified: 1, updated_on: new Date() },
-            { where: { id: mail_details.id } }
-        );
+        // await UserEmailVerify.update(
+        //     { is_verified: 1, updated_on: new Date() },
+        //     { where: { id: mail_details.id } }
+        // );
 
         return res.status(200).json({
             data: {

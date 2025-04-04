@@ -86,7 +86,7 @@ exports.company_registration = async (req, res) => {
             where: { verify_code: email_verify_token, email }
         });
 
-        if (!emailRecord || emailRecord.is_verified !== 1) {
+        if (!emailRecord || emailRecord.is_verified != 0) {
             return res.status(400).json({ message: "Invalid Mail or Verify Code" });
         }
 
@@ -155,6 +155,12 @@ exports.company_registration = async (req, res) => {
             updated_by_id: user_id,
             user_id
         });
+
+        // Update verification status
+        await UserEmailVerify.update(
+            { is_verified: 1, updated_on: new Date() },
+            { where: { id: emailRecord.id } }
+        );
 
         // Send email notification
         const new_url = process.env.SITE_URL;
