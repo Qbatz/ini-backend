@@ -30,7 +30,6 @@ router.post('/auth/token', registerrouter.login);
 
 router.post('/user/reset-password', registerrouter.reset_password);
 
-
 // Vendor Routes
 
 router.post('/usr/vendor', vendorroute.basic_info);

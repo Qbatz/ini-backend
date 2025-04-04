@@ -37,13 +37,22 @@ exports.email_verify = async (req, res) => {
     }
 
     try {
-        const email_verify = await UserEmailVerify.findOne({ where: { email } })
+        const email_verify = await AuthUser.findOne({ where: { email } })
 
         if (email_verify) {
             return res.status(400).json({ message: "Email Already registered with us" });
         } else {
 
-            const secretKey = process.env.SECRET_KEY;
+            var hostname = req.hostname;
+
+            if (hostname == "localhost" || hostname == "inaitestingapi.s3remotica.com") {
+                var secretKey = process.env.LOCAL_RE_SECRET_KEY;
+            } else {
+                var secretKey = process.env.DEV_RE_SECRET_KEY;
+            }
+
+            console.log(secretKey);
+
 
             const url = "https://www.google.com/recaptcha/api/siteverify";
 
@@ -67,12 +76,21 @@ exports.email_verify = async (req, res) => {
                 if (data.success) {
 
                     const verify_code = generateCode();
+
                     var url = process.env.SITE_URL;
                     const htmlFilePath = path.join(__dirname, '../mail_templates', 'verify_mail.html');
                     let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
                     htmlContent = htmlContent.replace('{{site_url}}', url).replace('{{verify_code}}', verify_code).replace('{{site_url}}', url).replace('{{verify_code}}', verify_code);
 
-                    var insert_verify = await UserEmailVerify.create({ email, verify_code, is_verified: 0 })
+                    const existingVerify = await UserEmailVerify.findOne({ where: { email } });
+
+                    if (existingVerify) {
+                        await UserEmailVerify.update({ verify_code, is_verified: 0, updated_on: new Date() }, { where: { email } });
+                    } else {
+                        await UserEmailVerify.create({ email, verify_code, is_verified: 0 });
+                    }
+
+                    // var insert_verify = await UserEmailVerify.create({ email, verify_code, is_verified: 0 })
 
                     await transport.sendMail({
                         from: '"MyApp Support" <no-reply@myapp.com>', // Sender email
@@ -120,13 +138,13 @@ exports.email_verify_confirm = async (req, res) => {
             });
         }
 
-        // const expire_time = new Date(mail_details.created_on);
-        // const current_time = new Date();
-        // const hours_diff = (current_time - expire_time) / (1000 * 60 * 60);
+        const expire_time = new Date(mail_details.created_on);
+        const current_time = new Date();
+        const hours_diff = (current_time - expire_time) / (1000 * 60 * 60);
 
-        // if (hours_diff > 24) {
-        //     return res.status(400).json({ message: "Verification link expired. Please request a new one." });
-        // }
+        if (hours_diff > 24) {
+            return res.status(400).json({ message: "Verification link expired. Please request a new one." });
+        }
 
         // Update verification status
         // await UserEmailVerify.update(
@@ -159,7 +177,15 @@ exports.forgot_password = async (req, res) => {
             return res.status(400).json({ message: "Missing Recaptcha Code" });
         }
 
-        const secretKey = process.env.SECRET_KEY;
+        var hostname = req.hostname;
+
+        if (hostname == "localhost" || hostname == "inaitestingapi.s3remotica.com") {
+            var secretKey = process.env.LOCAL_RE_SECRET_KEY;
+        } else {
+            var secretKey = process.env.DEV_RE_SECRET_KEY;
+        }
+
+        // const secretKey = process.env.SECRET_KEY;
         const url = "https://www.google.com/recaptcha/api/siteverify";
 
         request.post({
