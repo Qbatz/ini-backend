@@ -123,30 +123,56 @@ exports.add_customersall = async (req, res) => {
             await CustomerAddress.bulkCreate(addressDetails);
         }
 
-
         if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
 
-            var new_bankDetails = bankDetails[0]
+            await customer_BankDetails.destroy({ where: { user_id: customerid } });
 
-            await customer_BankDetails.create({
+            var bank_details = bankDetails.map(banks => ({
                 user_id: customerid,
-                name: new_bankDetails.name || ' ',
-                currency: new_bankDetails.currency,
-                account_number: new_bankDetails.accountNo,
-                bank_name: new_bankDetails.bankName,
-                ifsc_code: new_bankDetails.ifscCode,
-                address_line1: new_bankDetails.address1,
-                address_line2: new_bankDetails.address2,
-                address_line3: new_bankDetails.address3,
-                country: new_bankDetails.country || 'IN',
-                routing_bank: new_bankDetails.routingBank,
-                swift_code: new_bankDetails.swiftCode,
-                routing_bank_address: new_bankDetails.routingBankAddress,
-                routing_account_indusind: new_bankDetails.routingAccountIndusand,
+                name: banks.name,
+                account_number: banks.accountNo,
+                bank_name: banks.bankName,
+                ifsc_code: banks.ifscCode,
+                address_line1: banks.address1,
+                address_line2: banks.address2,
+                address_line3: banks.address3,
+                country: banks.country || 'IN',
+                routing_bank: banks.routingBank,
+                swift_code: banks.swiftCode,
+                currency: banks.currency || 1,
+                isPrimary: banks.isPrimary || false,
+                routing_bank_address: banks.routingBankAddress,
+                routing_account_indusind: banks.routingAccountIndusand,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
-            });
+            }));
+
+            await customer_BankDetails.bulkCreate(bank_details);
         }
+
+        // if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
+
+        //     var new_bankDetails = bankDetails[0]
+
+        //     await customer_BankDetails.create({
+        //         user_id: customerid,
+        //         name: new_bankDetails.name || ' ',
+        //         currency: new_bankDetails.currency,
+        //         account_number: new_bankDetails.accountNo,
+        //         bank_name: new_bankDetails.bankName,
+        //         ifsc_code: new_bankDetails.ifscCode,
+        //         address_line1: new_bankDetails.address1,
+        //         address_line2: new_bankDetails.address2,
+        //         address_line3: new_bankDetails.address3,
+        //         country: new_bankDetails.country || 'IN',
+        //         routing_bank: new_bankDetails.routingBank,
+        //         swift_code: new_bankDetails.swiftCode,
+        //         routing_bank_address: new_bankDetails.routingBankAddress,
+        //         routing_account_indusind: new_bankDetails.routingAccountIndusand,
+        //         created_by_id: created_by_id,
+        //         updated_by_id: created_by_id
+        //     });
+        // }
 
         return res.status(200).json({ message: "Client added successfully", clientId: customerid });
     } catch (error) {
@@ -199,7 +225,8 @@ exports.all_customers = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary"],
+                    order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalCustomersContactInfo,
@@ -244,6 +271,7 @@ exports.all_customers = async (req, res) => {
                 country: bank.country || "",
                 routingBank: bank.routing_bank || "",
                 swiftCode: bank.swift_code || "",
+                isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
                 routingAccountIndusand: bank.routing_account_indusind || ""
             })),
@@ -289,13 +317,14 @@ exports.one_customer = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary"]
                 },
                 {
                     model: AdditionalCustomersContactInfo,
                     attributes: ["name", "number", "email", "designation", "country"]
                 },
-            ]
+            ],
+            order: [[customer_BankDetails, "isPrimary", "DESC"]]
         });
 
         // Format response safely
@@ -333,6 +362,7 @@ exports.one_customer = async (req, res) => {
                 country: bank.country || "",
                 routingBank: bank.routing_bank || "",
                 swiftCode: bank.swift_code || "",
+                isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
                 routingAccountIndusand: bank.routing_account_indusind || ""
             })),
@@ -473,26 +503,31 @@ exports.updatecustomer = async (req, res) => {
         }
 
         if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
+
             await customer_BankDetails.destroy({ where: { user_id: clientId } });
-            const newBank = bankDetails[0];
-            await customer_BankDetails.create({
+
+            var bank_details = bankDetails.map(banks => ({
                 user_id: clientId,
-                name: newBank.name || ' ',
-                currency: newBank.currency,
-                account_number: newBank.accountNo,
-                bank_name: newBank.bankName,
-                ifsc_code: newBank.ifscCode,
-                address_line1: newBank.address1,
-                address_line2: newBank.address2,
-                address_line3: newBank.address3,
-                country: newBank.country || 'IN',
-                routing_bank: newBank.routingBank,
-                swift_code: newBank.swiftCode,
-                routing_bank_address: newBank.routingBankAddress,
-                routing_account_indusind: newBank.routingAccountIndusand,
+                name: banks.name || ' ',
+                currency: banks.currency,
+                account_number: banks.accountNo,
+                bank_name: banks.bankName,
+                ifsc_code: banks.ifscCode,
+                address_line1: banks.address1,
+                address_line2: banks.address2,
+                address_line3: banks.address3,
+                country: banks.country || 'IN',
+                routing_bank: banks.routingBank,
+                swift_code: banks.swiftCode,
+                isPrimary: banks.isPrimary || false,
+                routing_bank_address: banks.routingBankAddress,
+                routing_account_indusind: banks.routingAccountIndusand,
                 created_by_id: updated_by_id,
                 updated_by_id: updated_by_id
-            });
+            }));
+
+            await customer_BankDetails.bulkCreate(bank_details);
+
         }
 
         return res.status(200).json({ message: "Customer updated successfully", clientId: clientId });
@@ -712,56 +747,36 @@ exports.addBankDetails = async (req, res) => {
     }
 
     try {
-        var new_bankDetails = bankDetails[0]
-        var existingBankDetails = await customer_BankDetails.findOne({ where: { user_id: clientId } });
 
-        if (existingBankDetails) {
+        if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
 
-            await customer_BankDetails.update({
+            await customer_BankDetails.destroy({ where: { user_id: clientId } });
+
+            var bank_details = bankDetails.map(banks => ({
                 user_id: clientId,
-                name: newBank.name || ' ',
-                currency: newBank.currency,
-                account_number: newBank.accountNo,
-                bank_name: newBank.bankName,
-                ifsc_code: newBank.ifscCode,
-                address_line1: newBank.address1,
-                address_line2: newBank.address2,
-                address_line3: newBank.address3,
-                country: newBank.country || 'IN',
-                routing_bank: newBank.routingBank,
-                swift_code: newBank.swiftCode,
-                routing_bank_address: newBank.routingBankAddress,
-                routing_account_indusind: newBank.routingAccountIndusand,
+                name: banks.name || ' ',
+                currency: banks.currency,
+                account_number: banks.accountNo,
+                bank_name: banks.bankName,
+                ifsc_code: banks.ifscCode,
+                address_line1: banks.address1,
+                address_line2: banks.address2,
+                address_line3: banks.address3,
+                country: banks.country || 'IN',
+                routing_bank: banks.routingBank,
+                swift_code: banks.swiftCode,
+                isPrimary: banks.isPrimary || false,
+                routing_bank_address: banks.routingBankAddress,
+                routing_account_indusind: banks.routingAccountIndusand,
                 created_by_id: updated_by_id,
                 updated_by_id: updated_by_id
-            },
-                { where: { user_id: clientId } }
-            );
+            }));
 
-        } else {
-
-            await customer_BankDetails.create({
-                user_id: clientId,
-                name: new_bankDetails.name || ' ',
-                currency: new_bankDetails.currency,
-                account_number: new_bankDetails.accountNo,
-                bank_name: new_bankDetails.bankName,
-                ifsc_code: new_bankDetails.ifscCode,
-                address_line1: new_bankDetails.address1,
-                address_line2: new_bankDetails.address2,
-                address_line3: new_bankDetails.address3,
-                country: new_bankDetails.country || 'IN',
-                routing_bank: new_bankDetails.routingBank,
-                swift_code: new_bankDetails.swiftCode,
-                routing_bank_address: new_bankDetails.routingBankAddress,
-                routing_account_indusind: new_bankDetails.routingAccountIndusand,
-                created_by_id: updated_by_id,
-                updated_by_id: updated_by_id
-            });
-
-            return res.status(200).json({ message: "Bank Details added", clientId: clientId });
-
+            await customer_BankDetails.bulkCreate(bank_details);
         }
+
+        return res.status(200).json({ message: "Bank Details added", clientId: clientId });
+
     } catch (error) {
         return res.status(404).json({ message: error.message });
     }

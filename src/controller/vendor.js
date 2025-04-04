@@ -121,52 +121,79 @@ exports.basic_info = async (req, res) => {
                 await Address.bulkCreate(addressDetails);
             }
 
-            if (bankDetails) {
-                var existingBankDetails = await BankDetails.findOne({ where: { user_id: vendor_id } });
+            if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
 
-                if (existingBankDetails) {
-                    await BankDetails.update(
-                        {
-                            name: bankDetails.name,
-                            account_number: bankDetails.accountNo,
-                            bank_name: bankDetails.bankName,
-                            ifsc_code: bankDetails.ifscCode,
-                            address_line1: bankDetails.address1,
-                            address_line2: bankDetails.address2,
-                            address_line3: bankDetails.address3,
-                            country: bankDetails.country || 'IN',
-                            routing_bank: bankDetails.routingBank,
-                            swift_code: bankDetails.swiftCode,
-                            currency: bankDetails.currency || 1,
-                            routing_bank_address: bankDetails.routingBankAddress,
-                            routing_account_indusind: bankDetails.routingAccountIndusand,
-                            updated_by_id: created_by_id
-                        },
-                        { where: { user_id: vendor_id } }
-                    );
-                } else {
-                    await BankDetails.create({
-                        user_id: vendor_id,
-                        name: bankDetails.name,
-                        account_number: bankDetails.accountNo,
-                        bank_name: bankDetails.bankName,
-                        ifsc_code: bankDetails.ifscCode,
-                        address_line1: bankDetails.address1,
-                        address_line2: bankDetails.address2,
-                        address_line3: bankDetails.address3,
-                        country: bankDetails.country || 'IN',
-                        routing_bank: bankDetails.routingBank,
-                        swift_code: bankDetails.swiftCode,
-                        currency: bankDetails.currency || 1,
-                        routing_bank_address: bankDetails.routingBankAddress,
-                        routing_account_indusind: bankDetails.routingAccountIndusand,
-                        created_by_id: created_by_id,
-                        updated_by_id: created_by_id
-                    });
-                }
+                await BankDetails.destroy({ where: { user_id: vendor_id } });
+
+                var bank_details = bankDetails.map(banks => ({
+                    user_id: vendor_id,
+                    name: banks.name,
+                    account_number: banks.accountNo,
+                    bank_name: banks.bankName,
+                    ifsc_code: banks.ifscCode,
+                    address_line1: banks.address1,
+                    address_line2: banks.address2,
+                    address_line3: banks.address3,
+                    country: banks.country || 'IN',
+                    routing_bank: banks.routingBank,
+                    swift_code: banks.swiftCode,
+                    currency: banks.currency || 1,
+                    isPrimary: banks.isPrimary || false,
+                    routing_bank_address: banks.routingBankAddress,
+                    routing_account_indusind: banks.routingAccountIndusand,
+                    created_by_id: created_by_id,
+                    updated_by_id: created_by_id
+                }));
+
+                await BankDetails.bulkCreate(bank_details);
             }
 
-            return res.status(200).json({ message: vendor_id ? "Vendor updated successfully" : "Vendor created successfully", vendor_id: vendor_id });
+            // if (bankDetails) {
+            //     var existingBankDetails = await BankDetails.findOne({ where: { user_id: vendor_id } });
+
+            //     if (existingBankDetails) {
+            //         await BankDetails.update(
+            //             {
+            //                 name: bankDetails.name,
+            //                 account_number: bankDetails.accountNo,
+            //                 bank_name: bankDetails.bankName,
+            //                 ifsc_code: bankDetails.ifscCode,
+            //                 address_line1: bankDetails.address1,
+            //                 address_line2: bankDetails.address2,
+            //                 address_line3: bankDetails.address3,
+            //                 country: bankDetails.country || 'IN',
+            //                 routing_bank: bankDetails.routingBank,
+            //                 swift_code: bankDetails.swiftCode,
+            //                 currency: bankDetails.currency || 1,
+            //                 routing_bank_address: bankDetails.routingBankAddress,
+            //                 routing_account_indusind: bankDetails.routingAccountIndusand,
+            //                 updated_by_id: created_by_id
+            //             },
+            //             { where: { user_id: vendor_id } }
+            //         );
+            //     } else {
+            //         await BankDetails.create({
+            //             user_id: vendor_id,
+            //             name: bankDetails.name,
+            //             account_number: bankDetails.accountNo,
+            //             bank_name: bankDetails.bankName,
+            //             ifsc_code: bankDetails.ifscCode,
+            //             address_line1: bankDetails.address1,
+            //             address_line2: bankDetails.address2,
+            //             address_line3: bankDetails.address3,
+            //             country: bankDetails.country || 'IN',
+            //             routing_bank: bankDetails.routingBank,
+            //             swift_code: bankDetails.swiftCode,
+            //             currency: bankDetails.currency || 1,
+            //             routing_bank_address: bankDetails.routingBankAddress,
+            //             routing_account_indusind: bankDetails.routingAccountIndusand,
+            //             created_by_id: created_by_id,
+            //             updated_by_id: created_by_id
+            //         });
+            //     }
+            // }
+
+            return res.status(200).json({ message: req.body.vendor_id ? "Vendor updated successfully" : "Vendor created successfully", vendor_id: vendor_id });
 
         } else {
             return res.status(400).json({ message: "Vendor details missing" });
@@ -323,56 +350,35 @@ exports.addBankDetails = async (req, res) => {
             return res.status(400).json({ message: "Invalid Vendor Id" });
         }
 
-        var newbankDetails = bankDetails[0];
+        if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
 
-        var existingBankDetails = await BankDetails.findOne({ where: { user_id: vendorId } });
+            await BankDetails.destroy({ where: { user_id: vendorId } });
 
-        if (existingBankDetails) {
-            await BankDetails.update(
-                {
-                    name: newbankDetails.name || ' ',
-                    account_number: newbankDetails.accountNo,
-                    bank_name: newbankDetails.bankName,
-                    ifsc_code: newbankDetails.ifscCode,
-                    address_line1: newbankDetails.address1,
-                    address_line2: newbankDetails.address2,
-                    address_line3: newbankDetails.address3,
-                    country: newbankDetails.country || 'IN',
-                    routing_bank: newbankDetails.routingBank,
-                    swift_code: newbankDetails.swiftCode,
-                    currency: newbankDetails.currency || 1,
-                    routing_bank_address: newbankDetails.routingBankAddress,
-                    routing_account_indusind: newbankDetails.routingAccountIndusand,
-                    updated_by_id: created_by_id
-                },
-                { where: { user_id: vendorId } }
-            );
-
-            return res.status(200).json({ message: "Bank Details Updated", vendorId: vendorId });
-
-        } else {
-            await BankDetails.create({
+            var bank_details = bankDetails.map(banks => ({
                 user_id: vendorId,
-                name: newbankDetails.name,
-                account_number: newbankDetails.accountNo,
-                bank_name: newbankDetails.bankName,
-                ifsc_code: newbankDetails.ifscCode,
-                address_line1: newbankDetails.address1,
-                address_line2: newbankDetails.address2,
-                address_line3: newbankDetails.address3,
-                country: newbankDetails.country || 'IN',
-                routing_bank: newbankDetails.routingBank,
-                swift_code: newbankDetails.swiftCode,
-                currency: newbankDetails.currency || 1,
-                routing_bank_address: newbankDetails.routingBankAddress,
-                routing_account_indusind: newbankDetails.routingAccountIndusand,
+                name: banks.name,
+                account_number: banks.accountNo,
+                bank_name: banks.bankName,
+                ifsc_code: banks.ifscCode,
+                address_line1: banks.address1,
+                address_line2: banks.address2,
+                address_line3: banks.address3,
+                country: banks.country || 'IN',
+                routing_bank: banks.routingBank,
+                swift_code: banks.swiftCode,
+                currency: banks.currency || 1,
+                isPrimary: banks.isPrimary || false,
+                routing_bank_address: banks.routingBankAddress,
+                routing_account_indusind: banks.routingAccountIndusand,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
-            });
+            }));
 
-            return res.status(200).json({ message: "Bank Details Added", vendorId: vendorId });
-
+            await BankDetails.bulkCreate(bank_details);
         }
+
+        return res.status(200).json({ message: "Bank Details Updated", vendorId: vendorId });
+
     } catch (error) {
         return res.status(400).json({ message: error.message });
     }
@@ -554,52 +560,31 @@ exports.updatevendor_id = async (req, res) => {
             await Address.bulkCreate(addressDetails);
         }
 
-        if (bankDetails) {
+        if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
 
-            var bankDetails = bankDetails[0]
+            await BankDetails.destroy({ where: { user_id: vendor_id } });
 
-            var existingBankDetails = await BankDetails.findOne({ where: { user_id: vendor_id } });
+            var bank_details = bankDetails.map(banks => ({
+                user_id: vendor_id,
+                name: banks.name,
+                account_number: banks.accountNo,
+                bank_name: banks.bankName,
+                ifsc_code: banks.ifscCode,
+                address_line1: banks.address1,
+                address_line2: banks.address2,
+                address_line3: banks.address3,
+                country: banks.country || 'IN',
+                routing_bank: banks.routingBank,
+                swift_code: banks.swiftCode,
+                currency: banks.currency || 1,
+                isPrimary: banks.isPrimary || false,
+                routing_bank_address: banks.routingBankAddress,
+                routing_account_indusind: banks.routingAccountIndusand,
+                created_by_id: created_by_id,
+                updated_by_id: created_by_id
+            }));
 
-            if (existingBankDetails) {
-                await BankDetails.update(
-                    {
-                        name: bankDetails.name || ' ',
-                        currency: bankDetails.currency || 1,
-                        account_number: bankDetails.accountNo,
-                        bank_name: bankDetails.bankName,
-                        ifsc_code: bankDetails.ifscCode,
-                        address_line1: bankDetails.address1,
-                        address_line2: bankDetails.address2,
-                        address_line3: bankDetails.address3,
-                        country: bankDetails.country || 'IN',
-                        routing_bank: bankDetails.routingBank,
-                        swift_code: bankDetails.swiftCode,
-                        routing_bank_address: bankDetails.routingBankAddress,
-                        routing_account_indusind: bankDetails.routingAccountIndusand,
-                        updated_by_id: created_by_id
-                    },
-                    { where: { user_id: vendor_id } }
-                );
-            } else {
-                await BankDetails.create({
-                    user_id: vendor_id,
-                    name: bankDetails.name || ' ',
-                    currency: bankDetails.currency || 1,
-                    account_number: bankDetails.accountNo,
-                    bank_name: bankDetails.bankName,
-                    ifsc_code: bankDetails.ifscCode,
-                    address_line1: bankDetails.address1,
-                    address_line2: bankDetails.address2,
-                    address_line3: bankDetails.address3,
-                    country: bankDetails.country || 'IN',
-                    routing_bank: bankDetails.routingBank,
-                    swift_code: bankDetails.swiftCode,
-                    routing_bank_address: bankDetails.routingBankAddress,
-                    routing_account_indusind: bankDetails.routingAccountIndusand,
-                    created_by_id: created_by_id,
-                    updated_by_id: created_by_id
-                });
-            }
+            await BankDetails.bulkCreate(bank_details);
         }
 
         return res.status(200).json({ message: "Vendor updated successfully", vendor_id: vendor_id });
@@ -647,7 +632,8 @@ exports.get_allvendors = async (req, res) => {
                 },
                 {
                     model: BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary"],
+                    order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalContactInfo,
@@ -689,6 +675,7 @@ exports.get_allvendors = async (req, res) => {
                 currency: bank.currency || 1,
                 routingBank: bank.routing_bank || "",
                 swiftCode: bank.swift_code || "",
+                isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
                 routingAccountIndusand: bank.routing_account_indusind || ""
             })),
@@ -727,13 +714,14 @@ exports.particularvendor_details = async (req, res) => {
                 },
                 {
                     model: BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary"],
                 },
                 {
                     model: AdditionalContactInfo,
                     attributes: ["name", "number", "email", "designation", "country"]
                 }
-            ]
+            ],
+            order: [[BankDetails, "isPrimary", "DESC"]]
         });
 
         // Format the response
@@ -767,7 +755,8 @@ exports.particularvendor_details = async (req, res) => {
                 country: bank.country || "",
                 routingBank: bank.routing_bank || "",
                 swiftCode: bank.swift_code || "",
-                currency: bank.currency || 1,
+                currency: bank.currency || "INR",
+                isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
                 routingAccountIndusand: bank.routing_account_indusind || ""
             })),
