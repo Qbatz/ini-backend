@@ -4,6 +4,7 @@ const registerrouter = require('../controller/register');
 const forgotrouter = require('../controller/forgot');
 const vendorroute = require('../controller/vendor');
 const customersroute = require('../controller/customers');
+const mastersroute = require('../controller/masters');
 
 const router = express.Router();
 
@@ -65,6 +66,10 @@ router.post('/usr/client/addBasicInfo', customersroute.addBasicInfo);
 router.post('/usr/client/addBankDetails', customersroute.addBankDetails);
 
 router.post('/usr/client/addAddressInfo', customersroute.addAddressInfo);
+
+// Master Route
+
+router.get('/common/master', mastersroute.master_details);
 
 
 module.exports = router;
