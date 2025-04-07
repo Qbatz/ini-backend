@@ -7,7 +7,7 @@ exports.add_customersall = async (req, res) => {
     var created_by_id = req.user_id;
     const { businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, country, country_code, bankDetails, additionalContactInfo } = req.body;
 
-    if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !CIN || !PAN || !TAN || !statusOfFirm || !natureOfBusiness) {
+    if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
@@ -77,9 +77,9 @@ exports.add_customersall = async (req, res) => {
             designation: designation,
             gst_vat: gstVat,
             country: country || 'IN',
-            cin: CIN,
+            cin: CIN || 0,
             pan: PAN,
-            tan: TAN,
+            tan: TAN || 0,
             statusoffirm: statusOfFirm,
             natureof_business: natureOfBusiness,
             country_code: country_code || 91,
@@ -112,7 +112,10 @@ exports.add_customersall = async (req, res) => {
                 address_line1: address.doorNo,
                 address_line2: address.street,
                 address_line3: address.locality,
-                address_line4: address.city,
+                address_line4: address.address4,
+                city: address.city,
+                state: address.state,
+                country: address.country,
                 postal_code: address.postalCode,
                 landmark: address.landMark,
                 maplink: address.mapLink,
@@ -214,7 +217,7 @@ exports.all_customers = async (req, res) => {
             include: [
                 {
                     model: CustomerAddress,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type"],
+                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
                     include: [
                         {
                             model: AddressType,
@@ -254,7 +257,10 @@ exports.all_customers = async (req, res) => {
                 doorNo: addr.address_line1 || "",
                 street: addr.address_line2 || "",
                 locality: addr.address_line3 || "",
-                city: addr.address_line4 || "",
+                address4: addr.address_line4 || "",
+                city: addr.city || "",
+                state: addr.state || "",
+                country: addr.country || "",
                 postalCode: addr.postal_code || "",
                 landMark: addr.landmark || "",
                 mapLink: addr.maplink || "",
@@ -306,7 +312,7 @@ exports.one_customer = async (req, res) => {
             include: [
                 {
                     model: CustomerAddress,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type"],
+                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
                     include: [
                         {
                             model: AddressType,
@@ -345,7 +351,10 @@ exports.one_customer = async (req, res) => {
                 doorNo: addr.address_line1 || "",
                 street: addr.address_line2 || "",
                 locality: addr.address_line3 || "",
-                city: addr.address_line4 || "",
+                address4: addr.address_line4 || "",
+                city: addr.city || "",
+                state: addr.state || "",
+                country: addr.country || "",
                 postalCode: addr.postal_code || "",
                 landMark: addr.landmark || "",
                 mapLink: addr.maplink || "",
@@ -392,7 +401,7 @@ exports.updatecustomer = async (req, res) => {
         const { businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, bankDetails, additionalContactInfo } = req.body;
         var updated_by_id = req.user_id;
 
-        if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !CIN || !PAN || !TAN || !statusOfFirm || !natureOfBusiness) {
+        if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
             return res.status(400).json({ message: "Missing Required Fields" });
         }
 
@@ -492,7 +501,10 @@ exports.updatecustomer = async (req, res) => {
                 address_line1: addr.doorNo,
                 address_line2: addr.street,
                 address_line3: addr.locality,
-                address_line4: addr.city,
+                address_line4: addr.address4,
+                city: addr.city,
+                state: addr.state,
+                country: addr.country,
                 postal_code: addr.postalCode,
                 landmark: addr.landMark,
                 maplink: addr.mapLink || null,
@@ -571,7 +583,7 @@ exports.addBasicInfo = async (req, res) => {
 
     const { customer_id, businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, additionalContactInfo, country_code, country } = req.body;
 
-    if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !CIN || !PAN || !TAN || !statusOfFirm || !natureOfBusiness) {
+    if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
@@ -621,9 +633,9 @@ exports.addBasicInfo = async (req, res) => {
                 designation: designation,
                 gst_vat: gstVat,
                 country: country || 'IN',
-                cin: CIN,
-                pan: PAN,
-                tan: TAN,
+                cin: CIN || 0,
+                pan: PAN || 0,
+                tan: TAN || 0,
                 statusoffirm: statusOfFirm,
                 natureof_business: natureOfBusiness,
                 country_code: country_code || 91,
@@ -822,7 +834,10 @@ exports.addAddressInfo = async (req, res) => {
             address_line1: addr.doorNo,
             address_line2: addr.street,
             address_line3: addr.locality,
-            address_line4: addr.city,
+            address_line4: addr.address4,
+            city: addr.city,
+            state: addr.state,
+            country: addr.country,
             postal_code: addr.postalCode,
             landmark: addr.landMark,
             maplink: addr.mapLink || null,

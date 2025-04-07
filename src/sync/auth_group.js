@@ -4,13 +4,14 @@
 // const sequelize = require('../config/db')
 // const { customer_BankDetails, Customers, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress } = require('../models/customers');
 const sequelize = require('../config/db');
-const { CommonCountry } = require('../models/masters');
+// const { CommonCountry } = require('../models/masters');
+const { CustomerAddress } = require('../models/customers');
 
 async function initDB() {
     try {
         await sequelize.sync({ alter: true });
     } catch (error) {
-        // console.log(error);
+        console.log(error);
     }
 }
 

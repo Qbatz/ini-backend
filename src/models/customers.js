@@ -35,7 +35,7 @@ const Customer = sequelize.define("customers", {
     },
     cin: {
         type: DataTypes.STRING(50),
-        allowNull: false,
+        allowNull: true,
     },
     pan: {
         type: DataTypes.STRING(50),
@@ -43,7 +43,7 @@ const Customer = sequelize.define("customers", {
     },
     tan: {
         type: DataTypes.STRING(50),
-        allowNull: false,
+        allowNull: true,
     },
     statusoffirm: {
         type: DataTypes.STRING(50),
@@ -254,6 +254,15 @@ const CustomerAddress = sequelize.define("customer_address", {
     },
     address_line4: {
         type: DataTypes.STRING(100)
+    },
+    city: {
+        type: DataTypes.STRING(100),
+    },
+    state: {
+        type: DataTypes.STRING(100),
+    },
+    country: {
+        type: DataTypes.STRING(100),
     },
     postal_code: {
         type: DataTypes.BIGINT,
