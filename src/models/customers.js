@@ -115,7 +115,8 @@ const NameofBussiness = sequelize.define("nameof_bussiness", {
 const seedNameofBussiness = async () => {
     const defaultValues = [
         { type: "Manufacturing" },
-        { type: "Supply of Service or Supply of Goods" }
+        { type: "Supply of Service" },
+        { type: " Supply of Goods" }
     ];
 
     for (const value of defaultValues) {

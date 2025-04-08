@@ -1,5 +1,4 @@
 const sequelize = require('../config/db');
-const { AdditionalCustomersContactInfo } = require('../models/customers');
 
 async function initDB() {
     try {

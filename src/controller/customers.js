@@ -2,7 +2,7 @@ const { Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, 
 const { AddressType } = require('../models/address');
 const { Op, fn, col, where } = require("sequelize");
 const { Title, CommonCountry } = require('../models/masters');
-
+const sequelize = require('../config/db');
 
 exports.add_customersall = async (req, res) => {
 
@@ -83,7 +83,7 @@ exports.add_customersall = async (req, res) => {
             pan: PAN,
             tan: TAN || 0,
             statusoffirm: statusOfFirm,
-            natureof_business: natureOfBusiness,
+            natureof_business: Array.isArray(natureOfBusiness) ? natureOfBusiness.join(',') : natureOfBusiness,
             country_code: country_code || 1,
             title: title,
             created_by_id: created_by_id,
@@ -210,7 +210,7 @@ exports.all_customers = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban"],
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban", "currency"],
                     order: [["isPrimary", "DESC"]]
                 },
                 {
@@ -238,71 +238,148 @@ exports.all_customers = async (req, res) => {
                     model: CommonCountry,
                     as: "customer_countrycode",
                     attributes: ["id", "name", "code", "phone"],
-                },
+                }
             ],
             order: [['id', 'DESC']]
         });
 
+        const allBusinessTypes = await NameofBussiness.findAll({ raw: true });
+
+        const formattedCustomers = customers.map(customer => {
+            const businessIds = customer.natureof_business
+                ? customer.natureof_business.split(',').map(id => parseInt(id.trim()))
+                : [];
+
+            const matchedBusinesses = allBusinessTypes.filter(biz =>
+                businessIds.includes(parseInt(biz.id))
+            );
+
+            return {
+                clientId: customer.customerid || "",
+                businessName: customer.business_name || "",
+                contactPerson: customer.contact_person || "",
+                contactNumber: customer.contact_number || "",
+                emailId: customer.email || "",
+                designation: customer.designation || "",
+                gstVat: customer.gst_vat || "",
+                CIN: customer.cin || "",
+                PAN: customer.pan || "",
+                TAN: customer.tan || "",
+                title_id: customer.title || "",
+                title: customer.customer_title_info ? customer.customer_title_info.title : "",
+                country_code_id: customer.country_code || "",
+                country_code: customer.customer_countrycode ? customer.customer_countrycode.phone : "",
+                statusOfFirm: customer.statusoffirm || "",
+                natureOfBusiness: customer.natureof_business || "",
+                natureOfBusinessNames: matchedBusinesses.map(b => b.type).join(", "),
+                address: (customer.customer_addresses || []).map(addr => ({
+                    doorNo: addr.address_line1 || "",
+                    street: addr.address_line2 || "",
+                    locality: addr.address_line3 || "",
+                    address4: addr.address_line4 || "",
+                    city: addr.city || "",
+                    state: addr.state || "",
+                    country: addr.country || "",
+                    postalCode: addr.postal_code || "",
+                    landMark: addr.landmark || "",
+                    mapLink: addr.maplink || "",
+                    addressType: addr.AddressType ? addr.AddressType.type : "",
+                })),
+                bankDetails: (customer.customer_bank_details || []).map(bank => ({
+                    name: bank.name || "",
+                    accountNo: bank.account_number || "",
+                    bankName: bank.bank_name || "",
+                    ifscCode: bank.ifsc_code || "",
+                    address1: bank.address_line1 || "",
+                    address2: bank.address_line2 || "",
+                    address3: bank.address_line3 || "",
+                    country: bank.country || "",
+                    routingBank: bank.routing_bank || "",
+                    swiftCode: bank.swift_code || "",
+                    isPrimary: bank.isPrimary || false,
+                    routingBankAddress: bank.routing_bank_address || "",
+                    routingAccountIndusand: bank.routing_account_indusind || "",
+                    iban: bank.iban || "",
+                    currency: bank.currency || "",
+                    intermediary_swift_code: bank.intermediary_swift_code || ""
+                })),
+                additionalContactInfo: (customer.additional_customers_contact_infos || []).map(contact => ({
+                    name: contact.name || "",
+                    contactNumber: contact.number || "",
+                    contactEmail: contact.email || "",
+                    designation: contact.designation || "",
+                    country: contact.country || "",
+                    title_id: contact.title || "",
+                    title: contact.title_info ? contact.title_info.title : "",
+                    country_codeid: contact.country_code || "",
+                    country_code: contact.customer_additional ? contact.customer_additional.phone : ""
+                }))
+            };
+        });
+
+
         // Format response safely
-        const formattedCustomers = customers.map(customer => ({
-            clientId: customer.customerid || "",
-            businessName: customer.business_name || "",
-            contactPerson: customer.contact_person || "",
-            contactNumber: customer.contact_number || "",
-            emailId: customer.email || "",
-            designation: customer.designation || "",
-            gstVat: customer.gst_vat || "",
-            CIN: customer.cin || "",
-            PAN: customer.pan || "",
-            TAN: customer.tan || "",
-            title_id: customer.title || "",
-            title: customer.customer_title_info ? customer.customer_title_info.title : "",
-            country_code_id: customer.country_code || "",
-            country_code: customer.customer_countrycode ? customer.customer_countrycode.phone : "",
-            statusOfFirm: customer.statusoffirm || "",
-            natureOfBusiness: customer.natureof_business || "",
-            address: (customer.customer_addresses || []).map(addr => ({
-                doorNo: addr.address_line1 || "",
-                street: addr.address_line2 || "",
-                locality: addr.address_line3 || "",
-                address4: addr.address_line4 || "",
-                city: addr.city || "",
-                state: addr.state || "",
-                country: addr.country || "",
-                postalCode: addr.postal_code || "",
-                landMark: addr.landmark || "",
-                mapLink: addr.maplink || "",
-                addressType: addr.AddressType ? addr.AddressType.type : "",
-            })),
-            bankDetails: (customer.customer_bank_details || []).map(bank => ({
-                name: bank.name || "",
-                accountNo: bank.account_number || "",
-                bankName: bank.bank_name || "",
-                ifscCode: bank.ifsc_code || "",
-                address1: bank.address_line1 || "",
-                address2: bank.address_line2 || "",
-                address3: bank.address_line3 || "",
-                country: bank.country || "",
-                routingBank: bank.routing_bank || "",
-                swiftCode: bank.swift_code || "",
-                isPrimary: bank.isPrimary || false,
-                routingBankAddress: bank.routing_bank_address || "",
-                routingAccountIndusand: bank.routing_account_indusind || "",
-                iban: bank.iban || "",
-                intermediary_swift_code: bank.intermediary_swift_code || ""
-            })),
-            additionalContactInfo: (customer.additional_customers_contact_infos || []).map(contact => ({
-                name: contact.name || "",
-                contactNumber: contact.number || "",
-                contactEmail: contact.email || "",
-                designation: contact.designation || "",
-                country: contact.country || "",
-                title_id: contact.title || "",
-                title: contact.title_info ? contact.title_info.title : "",
-                country_codeid: contact.country_code || "",
-                country_code: contact.customer_additional ? contact.customer_additional.phone : ""
-            }))
-        }));
+        // const formattedCustomers = customers.map(customer => ({
+        //     clientId: customer.customerid || "",
+        //     businessName: customer.business_name || "",
+        //     contactPerson: customer.contact_person || "",
+        //     contactNumber: customer.contact_number || "",
+        //     emailId: customer.email || "",
+        //     designation: customer.designation || "",
+        //     gstVat: customer.gst_vat || "",
+        //     CIN: customer.cin || "",
+        //     PAN: customer.pan || "",
+        //     TAN: customer.tan || "",
+        //     title_id: customer.title || "",
+        //     title: customer.customer_title_info ? customer.customer_title_info.title : "",
+        //     country_code_id: customer.country_code || "",
+        //     country_code: customer.customer_countrycode ? customer.customer_countrycode.phone : "",
+        //     statusOfFirm: customer.statusoffirm || "",
+        //     natureOfBusiness: customer.natureof_business || "",
+        //     natureOfBusinessNames: (customer.nature_of_business_names || []).map(b => b.type).join(", "),
+        //     address: (customer.customer_addresses || []).map(addr => ({
+        //         doorNo: addr.address_line1 || "",
+        //         street: addr.address_line2 || "",
+        //         locality: addr.address_line3 || "",
+        //         address4: addr.address_line4 || "",
+        //         city: addr.city || "",
+        //         state: addr.state || "",
+        //         country: addr.country || "",
+        //         postalCode: addr.postal_code || "",
+        //         landMark: addr.landmark || "",
+        //         mapLink: addr.maplink || "",
+        //         addressType: addr.AddressType ? addr.AddressType.type : "",
+        //     })),
+        //     bankDetails: (customer.customer_bank_details || []).map(bank => ({
+        //         name: bank.name || "",
+        //         accountNo: bank.account_number || "",
+        //         bankName: bank.bank_name || "",
+        //         ifscCode: bank.ifsc_code || "",
+        //         address1: bank.address_line1 || "",
+        //         address2: bank.address_line2 || "",
+        //         address3: bank.address_line3 || "",
+        //         country: bank.country || "",
+        //         routingBank: bank.routing_bank || "",
+        //         swiftCode: bank.swift_code || "",
+        //         isPrimary: bank.isPrimary || false,
+        //         routingBankAddress: bank.routing_bank_address || "",
+        //         routingAccountIndusand: bank.routing_account_indusind || "",
+        //         iban: bank.iban || "",
+        //         currency: bank.currency || "",
+        //         intermediary_swift_code: bank.intermediary_swift_code || ""
+        //     })),
+        //     additionalContactInfo: (customer.additional_customers_contact_infos || []).map(contact => ({
+        //         name: contact.name || "",
+        //         contactNumber: contact.number || "",
+        //         contactEmail: contact.email || "",
+        //         designation: contact.designation || "",
+        //         country: contact.country || "",
+        //         title_id: contact.title || "",
+        //         title: contact.title_info ? contact.title_info.title : "",
+        //         country_codeid: contact.country_code || "",
+        //         country_code: contact.customer_additional ? contact.customer_additional.phone : ""
+        //     }))
+        // }));
 
         res.json({ customers: formattedCustomers });
     } catch (error) {
@@ -337,11 +414,34 @@ exports.one_customer = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban", "currency"],
+                    order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalCustomersContactInfo,
-                    attributes: ["name", "number", "email", "designation", "country"]
+                    attributes: ["name", "number", "email", "designation", "country", "title", "country_code"],
+                    include: [
+                        {
+                            model: Title,
+                            as: "title_info",
+                            attributes: ["title"],
+                        },
+                        {
+                            model: CommonCountry,
+                            as: "customer_additional",
+                            attributes: ["id", "name", "code", "phone"],
+                        },
+                    ],
+                },
+                {
+                    model: Title,
+                    as: "customer_title_info",
+                    attributes: ["title"],
+                },
+                {
+                    model: CommonCountry,
+                    as: "customer_countrycode",
+                    attributes: ["id", "name", "code", "phone"],
                 },
             ],
             order: [[customer_BankDetails, "isPrimary", "DESC"]]
@@ -359,6 +459,10 @@ exports.one_customer = async (req, res) => {
             CIN: customer.cin || "",
             PAN: customer.pan || "",
             TAN: customer.tan || "",
+            title_id: customer.title || "",
+            title: customer.customer_title_info ? customer.customer_title_info.title : "",
+            country_code_id: customer.country_code || "",
+            country_code: customer.customer_countrycode ? customer.customer_countrycode.phone : "",
             statusOfFirm: customer.statusoffirm || "",
             natureOfBusiness: customer.natureof_business || "",
             address: (customer.customer_addresses || []).map(addr => ({
@@ -389,6 +493,7 @@ exports.one_customer = async (req, res) => {
                 routingBankAddress: bank.routing_bank_address || "",
                 routingAccountIndusand: bank.routing_account_indusind || "",
                 iban: bank.iban || "",
+                currency: bank.currency || "",
                 intermediary_swift_code: bank.intermediary_swift_code || ""
             })),
             additionalContactInfo: (customer.additional_customers_contact_infos || []).map(contact => ({
@@ -396,7 +501,11 @@ exports.one_customer = async (req, res) => {
                 contactNumber: contact.number || "",
                 contactEmail: contact.email || "",
                 designation: contact.designation || "",
-                country: contact.country || ""
+                country: contact.country || "",
+                title_id: contact.title || "",
+                title: contact.title_info ? contact.title_info.title : "",
+                country_codeid: contact.country_code || "",
+                country_code: contact.customer_additional ? contact.customer_additional.phone : ""
             }))
         }));
 
@@ -425,6 +534,8 @@ exports.updatecustomer = async (req, res) => {
             return res.status(400).json({ message: "Client ID is required" });
         }
 
+        console.log(address);
+
         if (address) {
             if (!Array.isArray(address) || address.length === 0) {
                 return res.status(400).json({ message: "Invalid Address Details" });
@@ -439,7 +550,7 @@ exports.updatecustomer = async (req, res) => {
 
         if (bankDetails) {
             if (!Array.isArray(bankDetails) || bankDetails.length === 0) {
-                return res.status(400).json({ message: "Invalid Address Details" });
+                return res.status(400).json({ message: "Invalid Bank Details" });
             }
 
             for (let banks of bankDetails) {
@@ -491,7 +602,7 @@ exports.updatecustomer = async (req, res) => {
             title: title,
             country_code: country_code,
             statusoffirm: statusOfFirm,
-            natureof_business: natureOfBusiness,
+            natureof_business: Array.isArray(natureOfBusiness) ? natureOfBusiness.join(',') : natureOfBusiness,
             updated_by_id: updated_by_id
         });
 
@@ -658,7 +769,7 @@ exports.addBasicInfo = async (req, res) => {
                 tan: TAN || 0,
                 title: title,
                 statusoffirm: statusOfFirm,
-                natureof_business: natureOfBusiness,
+                natureof_business: Array.isArray(natureOfBusiness) ? natureOfBusiness.join(',') : natureOfBusiness,
                 country_code: country_code || 1,
                 created_by_id: updated_by_id,
                 updated_by_id: updated_by_id
@@ -831,6 +942,8 @@ exports.addAddressInfo = async (req, res) => {
     if (!address) {
         return res.status(400).json({ message: "Missing Address Details" });
     }
+
+    console.log(address);
 
     if (address) {
         if (!Array.isArray(address) || address.length === 0) {
