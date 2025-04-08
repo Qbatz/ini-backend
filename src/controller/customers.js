@@ -1,13 +1,15 @@
 const { Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails } = require('../models/customers')
 const { AddressType } = require('../models/address');
 const { Op, fn, col, where } = require("sequelize");
+const { Title, CommonCountry } = require('../models/masters');
+
 
 exports.add_customersall = async (req, res) => {
 
     var created_by_id = req.user_id;
-    const { businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, country, country_code, bankDetails, additionalContactInfo } = req.body;
+    const { businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, country, country_code, bankDetails, additionalContactInfo, title } = req.body;
 
-    if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
+    if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness || !title || !country_code) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
@@ -41,7 +43,7 @@ exports.add_customersall = async (req, res) => {
         }
 
         for (let adds_detail of additionalContactInfo) {
-            if (!adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
+            if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
                 return res.status(400).json({ message: "Missing Required Fields in Additional Contact Info" });
             }
         }
@@ -82,7 +84,8 @@ exports.add_customersall = async (req, res) => {
             tan: TAN || 0,
             statusoffirm: statusOfFirm,
             natureof_business: natureOfBusiness,
-            country_code: country_code || 91,
+            country_code: country_code || 1,
+            title: title,
             created_by_id: created_by_id,
             updated_by_id: created_by_id
         });
@@ -92,11 +95,12 @@ exports.add_customersall = async (req, res) => {
             var additionalContacts = additionalContactInfo.map(contact => ({
                 customerid: customerid,
                 name: contact.name,
+                title: contact.title,
                 number: contact.contactNumber,
                 email: contact.contactEmail,
                 designation: contact.designation,
                 country: contact.country || 'IN',
-                country_code: contact.country_code || 91,
+                country_code: contact.country_code || 1,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
             }));
@@ -155,30 +159,6 @@ exports.add_customersall = async (req, res) => {
             await customer_BankDetails.bulkCreate(bank_details);
         }
 
-        // if (bankDetails && Array.isArray(bankDetails) && bankDetails.length > 0) {
-
-        //     var new_bankDetails = bankDetails[0]
-
-        //     await customer_BankDetails.create({
-        //         user_id: customerid,
-        //         name: new_bankDetails.name || ' ',
-        //         currency: new_bankDetails.currency,
-        //         account_number: new_bankDetails.accountNo,
-        //         bank_name: new_bankDetails.bankName,
-        //         ifsc_code: new_bankDetails.ifscCode,
-        //         address_line1: new_bankDetails.address1,
-        //         address_line2: new_bankDetails.address2,
-        //         address_line3: new_bankDetails.address3,
-        //         country: new_bankDetails.country || 'IN',
-        //         routing_bank: new_bankDetails.routingBank,
-        //         swift_code: new_bankDetails.swiftCode,
-        //         routing_bank_address: new_bankDetails.routingBankAddress,
-        //         routing_account_indusind: new_bankDetails.routingAccountIndusand,
-        //         created_by_id: created_by_id,
-        //         updated_by_id: created_by_id
-        //     });
-        // }
-
         return res.status(200).json({ message: "Client added successfully", clientId: customerid });
     } catch (error) {
         return res.status(400).json({ message: error.message });
@@ -235,7 +215,29 @@ exports.all_customers = async (req, res) => {
                 },
                 {
                     model: AdditionalCustomersContactInfo,
-                    attributes: ["name", "number", "email", "designation", "country"]
+                    attributes: ["name", "number", "email", "designation", "country", "title", "country_code"],
+                    include: [
+                        {
+                            model: Title,
+                            as: "title_info",
+                            attributes: ["title"],
+                        },
+                        {
+                            model: CommonCountry,
+                            as: "customer_additional",
+                            attributes: ["id", "name", "code", "phone"],
+                        },
+                    ],
+                },
+                {
+                    model: Title,
+                    as: "customer_title_info",
+                    attributes: ["title"],
+                },
+                {
+                    model: CommonCountry,
+                    as: "customer_countrycode",
+                    attributes: ["id", "name", "code", "phone"],
                 },
             ],
             order: [['id', 'DESC']]
@@ -253,6 +255,10 @@ exports.all_customers = async (req, res) => {
             CIN: customer.cin || "",
             PAN: customer.pan || "",
             TAN: customer.tan || "",
+            title_id: customer.title || "",
+            title: customer.customer_title_info ? customer.customer_title_info.title : "",
+            country_code_id: customer.country_code || "",
+            country_code: customer.customer_countrycode ? customer.customer_countrycode.phone : "",
             statusOfFirm: customer.statusoffirm || "",
             natureOfBusiness: customer.natureof_business || "",
             address: (customer.customer_addresses || []).map(addr => ({
@@ -266,7 +272,7 @@ exports.all_customers = async (req, res) => {
                 postalCode: addr.postal_code || "",
                 landMark: addr.landmark || "",
                 mapLink: addr.maplink || "",
-                addressType: addr.AddressType ? addr.AddressType.type : ""
+                addressType: addr.AddressType ? addr.AddressType.type : "",
             })),
             bankDetails: (customer.customer_bank_details || []).map(bank => ({
                 name: bank.name || "",
@@ -290,7 +296,11 @@ exports.all_customers = async (req, res) => {
                 contactNumber: contact.number || "",
                 contactEmail: contact.email || "",
                 designation: contact.designation || "",
-                country: contact.country || ""
+                country: contact.country || "",
+                title_id: contact.title || "",
+                title: contact.title_info ? contact.title_info.title : "",
+                country_codeid: contact.country_code || "",
+                country_code: contact.customer_additional ? contact.customer_additional.phone : ""
             }))
         }));
 
@@ -404,10 +414,10 @@ exports.updatecustomer = async (req, res) => {
 
         var clientId = req.params.customer_id || req.body.clientId
 
-        const { businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, bankDetails, additionalContactInfo } = req.body;
+        const { businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, bankDetails, additionalContactInfo, title, country_code } = req.body;
         var updated_by_id = req.user_id;
 
-        if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
+        if (!title || !country_code || !businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
             return res.status(400).json({ message: "Missing Required Fields" });
         }
 
@@ -445,7 +455,7 @@ exports.updatecustomer = async (req, res) => {
             }
 
             for (let adds_detail of additionalContactInfo) {
-                if (!adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
+                if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
                     return res.status(400).json({ message: "Missing Required Fields in Additional Contact Info" });
                 }
             }
@@ -478,6 +488,8 @@ exports.updatecustomer = async (req, res) => {
             cin: CIN,
             pan: PAN,
             tan: TAN,
+            title: title,
+            country_code: country_code,
             statusoffirm: statusOfFirm,
             natureof_business: natureOfBusiness,
             updated_by_id: updated_by_id
@@ -488,11 +500,12 @@ exports.updatecustomer = async (req, res) => {
             const additionalContacts = additionalContactInfo.map(contact => ({
                 customerid: clientId,
                 name: contact.name,
+                title: contact.title,
                 number: contact.contactNumber,
                 email: contact.contactEmail,
                 designation: contact.designation,
                 country: contact.country || 'IN',
-                country_code: contact.country_code || 91,
+                country_code: contact.country_code || 1,
                 created_by_id: updated_by_id,
                 updated_by_id: updated_by_id
             }));
@@ -588,9 +601,9 @@ exports.delete_customer = async (req, res) => {
 
 exports.addBasicInfo = async (req, res) => {
 
-    const { customer_id, businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, additionalContactInfo, country_code, country } = req.body;
+    const { customer_id, businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, additionalContactInfo, country_code, country, title } = req.body;
 
-    if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
+    if (!title || !country_code || !businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
@@ -600,7 +613,7 @@ exports.addBasicInfo = async (req, res) => {
         }
 
         for (let adds_detail of additionalContactInfo) {
-            if (!adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
+            if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
                 return res.status(400).json({ message: "Missing Required Fields in Additional Contact Info" });
             }
         }
@@ -643,9 +656,10 @@ exports.addBasicInfo = async (req, res) => {
                 cin: CIN || 0,
                 pan: PAN || 0,
                 tan: TAN || 0,
+                title: title,
                 statusoffirm: statusOfFirm,
                 natureof_business: natureOfBusiness,
-                country_code: country_code || 91,
+                country_code: country_code || 1,
                 created_by_id: updated_by_id,
                 updated_by_id: updated_by_id
             });
@@ -657,11 +671,12 @@ exports.addBasicInfo = async (req, res) => {
                 var additionalContacts = additionalContactInfo.map(contact => ({
                     customerid: customer_id,
                     name: contact.name,
+                    title: contact.title,
                     number: contact.contactNumber,
                     email: contact.contactEmail,
                     designation: contact.designation,
                     country: contact.country || 'IN',
-                    country_code: contact.country_code || 91,
+                    country_code: contact.country_code || 1,
                     created_by_id: updated_by_id,
                     updated_by_id: updated_by_id
                 }));
@@ -700,6 +715,8 @@ exports.addBasicInfo = async (req, res) => {
                 cin: CIN,
                 pan: PAN,
                 tan: TAN,
+                title: title,
+                country_code: country_code || 1,
                 statusoffirm: statusOfFirm,
                 natureof_business: natureOfBusiness,
                 updated_by_id: updated_by_id
@@ -714,11 +731,12 @@ exports.addBasicInfo = async (req, res) => {
                 var additionalContacts = additionalContactInfo.map(contact => ({
                     customerid: customer_id,
                     name: contact.name,
+                    title: title,
                     number: contact.contactNumber,
                     email: contact.contactEmail,
                     designation: contact.designation,
                     country: contact.country || 'IN',
-                    country_code: contact.country_code || 91,
+                    country_code: contact.country_code || 1,
                     created_by_id: updated_by_id,
                     updated_by_id: updated_by_id
                 }));

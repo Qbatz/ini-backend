@@ -3,6 +3,7 @@ const { Address, BankDetails, AddressType } = require("./address");
 const { AuthUser } = require("./users");
 const { UserCompany } = require("./register");
 const { Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails } = require("./customers");
+const { Title, CommonCountry, } = require("./masters");
 
 AuthUser.hasOne(UserCompany, { foreignKey: "user_id", sourceKey: "id" });
 UserCompany.belongsTo(AuthUser, { foreignKey: "user_id", targetKey: "id" });
@@ -27,15 +28,25 @@ customer_BankDetails.belongsTo(Customer, { foreignKey: "user_id", targetKey: "cu
 Customer.hasMany(AdditionalCustomersContactInfo, { foreignKey: "customerid", sourceKey: "customerid" });
 AdditionalCustomersContactInfo.belongsTo(Customer, { foreignKey: "customerid", targetKey: "customerid" });
 
-CustomerAddress.belongsTo(AddressType, {
-    foreignKey: "address_type",
-    as: "AddressType", // Alias must match the query include
-});
+CustomerAddress.belongsTo(AddressType, { foreignKey: "address_type", as: "AddressType", });
 
-AddressType.hasMany(CustomerAddress, {
-    foreignKey: "address_type",
-    as: "customer_addresses",
-});
+AddressType.hasMany(CustomerAddress, { foreignKey: "address_type", as: "customer_addresses", });
 
+AdditionalCustomersContactInfo.belongsTo(Title, { foreignKey: "title", as: "title_info", });
+
+Title.hasMany(AdditionalCustomersContactInfo, { foreignKey: "title", as: "title_info", });
+
+Customer.belongsTo(Title, { foreignKey: "title", as: "customer_title_info", });
+
+Title.hasMany(Customer, { foreignKey: "title", as: "customer_title_info", });
+
+// Customer CountryCode
+Customer.belongsTo(CommonCountry, { foreignKey: "country_code", targetKey: "id", as: "customer_countrycode", });
+
+CommonCountry.hasMany(Customer, { foreignKey: "country_code", sourceKey: "id", as: "customer_countrycode", });
+
+AdditionalCustomersContactInfo.belongsTo(CommonCountry, { foreignKey: "country_code", targetKey: "id", as: "customer_additional", });
+
+CommonCountry.hasMany(AdditionalCustomersContactInfo, { foreignKey: "country_code", sourceKey: "id", as: "customer_additional", });
 
 module.exports = { Vendor, Address, BankDetails, AdditionalContactInfo, AuthUser, UserCompany, Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails, AddressType };

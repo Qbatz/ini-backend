@@ -65,6 +65,9 @@ const Customer = sequelize.define("customers", {
     country_code: {
         type: DataTypes.INTEGER
     },
+    title: {
+        type: DataTypes.INTEGER
+    },
     is_active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
@@ -198,6 +201,9 @@ const AdditionalCustomersContactInfo = sequelize.define("additional_customers_co
         type: DataTypes.STRING(20),
     },
     country_code: {
+        type: DataTypes.INTEGER
+    },
+    title: {
         type: DataTypes.INTEGER
     },
     is_active: {
