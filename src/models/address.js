@@ -32,6 +32,15 @@ const Address = sequelize.define("address", {
     address_line4: {
         type: DataTypes.STRING(100)
     },
+    city: {
+        type: DataTypes.STRING(100),
+    },
+    state: {
+        type: DataTypes.STRING(100),
+    },
+    country: {
+        type: DataTypes.STRING(100),
+    },
     postal_code: {
         type: DataTypes.BIGINT,
         allowNull: false

@@ -110,7 +110,10 @@ exports.basic_info = async (req, res) => {
                     address_line1: address.doorNo,
                     address_line2: address.street,
                     address_line3: address.locality,
-                    address_line4: address.city,
+                    address_line4: address.address4,
+                    city: address.city,
+                    state: address.state,
+                    country: address.country,
                     postal_code: address.postalCode,
                     landmark: address.landMark,
                     maplink: address.mapLink,
@@ -424,7 +427,10 @@ exports.addAddressInfo = async (req, res) => {
                 address_line1: address.doorNo,
                 address_line2: address.street,
                 address_line3: address.locality,
-                address_line4: address.city,
+                address_line4: address.address4,
+                city: address.city,
+                state: address.state,
+                country: address.country,
                 postal_code: address.postalCode,
                 landmark: address.landMark,
                 maplink: address.mapLink,
@@ -549,7 +555,10 @@ exports.updatevendor_id = async (req, res) => {
                 address_line1: addr.doorNo,
                 address_line2: addr.street,
                 address_line3: addr.locality,
-                address_line4: addr.city,
+                address_line4: addr.address4,
+                city: addr.city,
+                state: addr.state,
+                country: addr.country,
                 postal_code: addr.postalCode,
                 landmark: addr.landMark,
                 maplink: addr.mapLink,
@@ -628,7 +637,7 @@ exports.get_allvendors = async (req, res) => {
             include: [
                 {
                     model: Address,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type"]
+                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"]
                 },
                 {
                     model: BankDetails,
@@ -657,7 +666,10 @@ exports.get_allvendors = async (req, res) => {
                 doorNo: addr.address_line1,
                 street: addr.address_line2 || "",
                 locality: addr.address_line3 || "",
-                city: addr.address_line4 || "",
+                address4: addr.address_line4 || "",
+                city: addr.city || "",
+                state: addr.state || "",
+                country: addr.country || "",
                 postalCode: addr.postal_code,
                 landMark: addr.landmark || "",
                 mapLink: addr.map_link || "",
@@ -710,7 +722,7 @@ exports.particularvendor_details = async (req, res) => {
             include: [
                 {
                     model: Address,
-                    attributes: ["address_line1", "address_line2", "address_line3", "postal_code", "landmark", "maplink", "address_type"]
+                    attributes: ["address_line1", "address_line2", "address_line3", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"]
                 },
                 {
                     model: BankDetails,
@@ -738,7 +750,10 @@ exports.particularvendor_details = async (req, res) => {
                 doorNo: addr.address_line1,
                 street: addr.address_line2 || "",
                 locality: addr.address_line3 || "",
-                city: addr.address_line4 || "",
+                address4: addr.address_line4 || "",
+                city: addr.city || "",
+                state: addr.state || "",
+                country: addr.country || "",
                 postalCode: addr.postal_code,
                 landMark: addr.landmark || "",
                 mapLink: addr.map_link || "",

@@ -354,6 +354,12 @@ const customer_BankDetails = sequelize.define("customer_bank_details", {
     routing_account_indusind: {
         type: DataTypes.STRING(200),
     },
+    intermediary_swift_code: {
+        type: DataTypes.STRING(200),
+    },
+    iban: {
+        type: DataTypes.STRING(200),
+    },
     isPrimary: {
         type: DataTypes.BOOLEAN,
         defaultValue: false

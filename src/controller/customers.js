@@ -29,7 +29,7 @@ exports.add_customersall = async (req, res) => {
         }
 
         for (let banks of bankDetails) {
-            if (!banks.currency || !banks.accountNo || !banks.bankName || !banks.ifscCode || !banks.address1 || !banks.swiftCode) {
+            if (!banks.name || !banks.currency || !banks.accountNo || !banks.ifscCode) {
                 return res.status(400).json({ message: "Missing Required Fields in Bank Details" });
             }
         }
@@ -141,11 +141,13 @@ exports.add_customersall = async (req, res) => {
                 address_line3: banks.address3,
                 country: banks.country || 'IN',
                 routing_bank: banks.routingBank,
-                swift_code: banks.swiftCode,
+                swift_code: banks.swiftCode || " ",
                 currency: banks.currency || 1,
                 isPrimary: banks.isPrimary || false,
                 routing_bank_address: banks.routingBankAddress,
                 routing_account_indusind: banks.routingAccountIndusand,
+                iban: banks.iban,
+                intermediary_swift_code: banks.intermediary_swift_code,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
             }));
@@ -228,7 +230,7 @@ exports.all_customers = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary"],
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban"],
                     order: [["isPrimary", "DESC"]]
                 },
                 {
@@ -279,7 +281,9 @@ exports.all_customers = async (req, res) => {
                 swiftCode: bank.swift_code || "",
                 isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
-                routingAccountIndusand: bank.routing_account_indusind || ""
+                routingAccountIndusand: bank.routing_account_indusind || "",
+                iban: bank.iban || "",
+                intermediary_swift_code: bank.intermediary_swift_code || ""
             })),
             additionalContactInfo: (customer.additional_customers_contact_infos || []).map(contact => ({
                 name: contact.name || "",
@@ -323,7 +327,7 @@ exports.one_customer = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary"]
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban"]
                 },
                 {
                     model: AdditionalCustomersContactInfo,
@@ -373,7 +377,9 @@ exports.one_customer = async (req, res) => {
                 swiftCode: bank.swift_code || "",
                 isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
-                routingAccountIndusand: bank.routing_account_indusind || ""
+                routingAccountIndusand: bank.routing_account_indusind || "",
+                iban: bank.iban || "",
+                intermediary_swift_code: bank.intermediary_swift_code || ""
             })),
             additionalContactInfo: (customer.additional_customers_contact_infos || []).map(contact => ({
                 name: contact.name || "",
@@ -427,7 +433,7 @@ exports.updatecustomer = async (req, res) => {
             }
 
             for (let banks of bankDetails) {
-                if (!banks.currency || !banks.accountNo || !banks.bankName || !banks.ifscCode || !banks.address1 || !banks.swiftCode) {
+                if (!banks.name || !banks.currency || !banks.accountNo || !banks.ifscCode) {
                     return res.status(400).json({ message: "Missing Required Fields in Bank Details" });
                 }
             }
@@ -530,16 +536,17 @@ exports.updatecustomer = async (req, res) => {
                 address_line3: banks.address3,
                 country: banks.country || 'IN',
                 routing_bank: banks.routingBank,
-                swift_code: banks.swiftCode,
+                swift_code: banks.swiftCode || " ",
                 isPrimary: banks.isPrimary || false,
                 routing_bank_address: banks.routingBankAddress,
                 routing_account_indusind: banks.routingAccountIndusand,
+                iban: banks.iban,
+                intermediary_swift_code: banks.intermediary_swift_code,
                 created_by_id: updated_by_id,
                 updated_by_id: updated_by_id
             }));
 
             await customer_BankDetails.bulkCreate(bank_details);
-
         }
 
         return res.status(200).json({ message: "Customer updated successfully", clientId: clientId });

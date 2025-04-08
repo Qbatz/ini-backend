@@ -1,11 +1,6 @@
-// const { User } = require('../models/users');
-// const { AdditionalContactInfo } = require('../models/vendors')
-// const { Address, BankDetails, AddressType } = require('../models/address')
-// const sequelize = require('../config/db')
-// const { customer_BankDetails, Customers, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress } = require('../models/customers');
 const sequelize = require('../config/db');
-// const { CommonCountry } = require('../models/masters');
-const { CustomerAddress } = require('../models/customers');
+// const { customer_BankDetails } = require('../models/customers');
+const { Address } = require('../models/address');
 
 async function initDB() {
     try {

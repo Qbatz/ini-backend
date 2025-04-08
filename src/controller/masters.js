@@ -8,7 +8,7 @@ exports.master_details = async (req, res) => {
     });
 
     var country = await CommonCountry.findAll({
-        attributes: ['id', 'name', ['code', 'countryCode'], 'flag', 'currency_code']
+        attributes: ['id', 'name', ['code', 'countryCode'], 'phone', 'flag', 'currency_code']
     });
 
     return res.status(200).json({ titles, country })
