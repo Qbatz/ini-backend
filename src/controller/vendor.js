@@ -139,7 +139,7 @@ exports.basic_info = async (req, res) => {
                     address_line3: banks.address3,
                     country: banks.country || 'IN',
                     routing_bank: banks.routingBank,
-                    swift_code: banks.swiftCode,
+                    swift_code: banks.swiftCode || " ",
                     currency: banks.currency || 1,
                     isPrimary: banks.isPrimary || false,
                     routing_bank_address: banks.routingBankAddress,
@@ -368,7 +368,7 @@ exports.addBankDetails = async (req, res) => {
                 address_line3: banks.address3,
                 country: banks.country || 'IN',
                 routing_bank: banks.routingBank,
-                swift_code: banks.swiftCode,
+                swift_code: banks.swiftCode || " ",
                 currency: banks.currency || 1,
                 isPrimary: banks.isPrimary || false,
                 routing_bank_address: banks.routingBankAddress,
@@ -481,7 +481,7 @@ exports.updatevendor_id = async (req, res) => {
     }
 
     for (let contact of bankDetails) {
-        if (!contact.bankName || !contact.accountNo || !contact.ifscCode || !contact.address1 || !contact.swiftCode) {
+        if (!contact.bankName || !contact.accountNo || !contact.ifscCode || !contact.address1) {
             return res.status(400).json({ message: "Missing Required Fields in Banking Details" });
         }
     }
@@ -584,7 +584,7 @@ exports.updatevendor_id = async (req, res) => {
                 address_line3: banks.address3,
                 country: banks.country || 'IN',
                 routing_bank: banks.routingBank,
-                swift_code: banks.swiftCode,
+                swift_code: banks.swiftCode || " ",
                 currency: banks.currency || 1,
                 isPrimary: banks.isPrimary || false,
                 routing_bank_address: banks.routingBankAddress,

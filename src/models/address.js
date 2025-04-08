@@ -123,7 +123,7 @@ const BankDetails = sequelize.define("bank_details", {
     },
     swift_code: {
         type: DataTypes.STRING(200),
-        allowNull: false
+        allowNull: true
     },
     routing_bank_address: {
         type: DataTypes.STRING(200),

@@ -753,7 +753,7 @@ exports.addBankDetails = async (req, res) => {
         }
 
         for (let banks of bankDetails) {
-            if (!banks.currency || !banks.accountNo || !banks.bankName || !banks.ifscCode || !banks.address1 || !banks.swiftCode) {
+            if (!banks.currency || !banks.accountNo || !banks.bankName || !banks.ifscCode || !banks.address1) {
                 return res.status(400).json({ message: "Missing Required Fields in Bank Details" });
             }
         }
@@ -783,7 +783,7 @@ exports.addBankDetails = async (req, res) => {
                 address_line3: banks.address3,
                 country: banks.country || 'IN',
                 routing_bank: banks.routingBank,
-                swift_code: banks.swiftCode,
+                swift_code: banks.swiftCode || " ",
                 isPrimary: banks.isPrimary || false,
                 routing_bank_address: banks.routingBankAddress,
                 routing_account_indusind: banks.routingAccountIndusand,

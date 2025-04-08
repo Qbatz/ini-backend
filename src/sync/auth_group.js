@@ -1,6 +1,7 @@
 const sequelize = require('../config/db');
 // const { customer_BankDetails } = require('../models/customers');
-const { Address } = require('../models/address');
+const { BankDetails } = require('../models/address');
+const { customer_BankDetails } = require('../models/customers');
 
 async function initDB() {
     try {
