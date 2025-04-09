@@ -41,6 +41,9 @@ const Vendor = sequelize.define("vendor", {
     country: {
         type: DataTypes.STRING(20),
     },
+    title: {
+        type: DataTypes.INTEGER
+    },
     country_code: {
         type: DataTypes.INTEGER
     },
@@ -100,6 +103,9 @@ const AdditionalContactInfo = sequelize.define("additional_contact_info", {
         type: DataTypes.STRING(20),
     },
     country_code: {
+        type: DataTypes.INTEGER
+    },
+    title: {
         type: DataTypes.INTEGER
     },
     is_active: {

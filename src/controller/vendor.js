@@ -21,6 +21,51 @@ exports.basic_info = async (req, res) => {
 
     var created_by_id = req.user_id;
 
+    if (basic_info) {
+
+        const { businessName, contactPersonName, contactNumber, emailId, designation, gstvat, country, title, country_code } = basic_info;
+
+        if (!businessName || !contactPersonName || !contactNumber || !emailId || !designation || !gstvat || !title || !country_code) {
+            return res.status(400).json({ message: "Missing Required Fields" });
+        }
+    }
+
+    if (additionalContactInfo) {
+        if (!Array.isArray(additionalContactInfo) || additionalContactInfo.length === 0) {
+            return res.status(400).json({ message: "Invalid Additional Contacts" });
+        }
+
+        for (let contact of additionalContactInfo) {
+            if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation || !contact.title || !contact.country_code) {
+                return res.status(400).json({ message: "Missing Required Fields in Additional Contacts" });
+            }
+        }
+    }
+
+    if (bankDetails) {
+        if (!Array.isArray(bankDetails) || bankDetails.length === 0) {
+            return res.status(400).json({ message: "Invalid Banking Details" });
+        }
+
+        for (let bank of bankDetails) {
+            if (!bank.bankName || !bank.accountNo || !bank.ifscCode || !bank.address1) {
+                return res.status(400).json({ message: "Missing Required Fields in Banking Details" });
+            }
+        }
+    }
+
+    if (address_info) {
+        if (!Array.isArray(address_info) || address_info.length === 0) {
+            return res.status(400).json({ message: "Invalid Address Details" });
+        }
+
+        for (let addr of address_info) {
+            if (!addr.doorNo || !addr.postalCode || !addr.addressType) {
+                return res.status(400).json({ message: "Missing Required Fields in Address Details" });
+            }
+        }
+    }
+
     try {
         if (basic_info) {
             var email = basic_info.emailId;
@@ -30,7 +75,8 @@ exports.basic_info = async (req, res) => {
             var contactPersonName = basic_info.contactPersonName;
             var gstvat = basic_info.gstvat;
             var country = basic_info.country || "IN";
-            var country_code = basic_info.country_code || 91;
+            var country_code = basic_info.country_code || 1;
+            var title = basic_info.title || 1;
 
             if (!vendor_id) {
 
@@ -52,6 +98,7 @@ exports.basic_info = async (req, res) => {
                     designation: designation,
                     gst_vat: gstvat,
                     country: country,
+                    title: title,
                     country_code: country_code,
                     created_by_id: created_by_id,
                     updated_by_id: created_by_id
@@ -74,7 +121,8 @@ exports.basic_info = async (req, res) => {
                         designation: designation,
                         gst_vat: gstvat,
                         country: country,
-                        country_code: country_code,
+                        title: title,
+                        country_code: country_code || 1,
                         updated_by_id: created_by_id
                     },
                     { where: { vendorid: vendor_id } }
@@ -92,7 +140,8 @@ exports.basic_info = async (req, res) => {
                     email: contact.contactEmail,
                     designation: contact.designation,
                     country: contact.country || 'IN',
-                    country_code: contact.country_code || 91,
+                    title: contact.title || 1,
+                    country_code: contact.country_code || 1,
                     created_by_id: created_by_id,
                     updated_by_id: created_by_id
                 }));
@@ -144,6 +193,8 @@ exports.basic_info = async (req, res) => {
                     isPrimary: banks.isPrimary || false,
                     routing_bank_address: banks.routingBankAddress,
                     routing_account_indusind: banks.routingAccountIndusand,
+                    iban: banks.iban,
+                    intermediary_swift_code: banks.intermediary_swift_code,
                     created_by_id: created_by_id,
                     updated_by_id: created_by_id
                 }));
@@ -209,13 +260,13 @@ exports.basic_info = async (req, res) => {
 
 exports.addBasicInfo = async (req, res) => {
 
-    var { businessName, contactPersonName, contactNumber, emailId, designation, gstvat, country, additionalContactInfo, vendor_id, country_code } = req.body;
+    var { businessName, contactPersonName, contactNumber, emailId, designation, gstvat, country, additionalContactInfo, vendor_id, country_code, title } = req.body;
 
     var created_by_id = req.user_id;
 
     try {
 
-        if (!businessName || !contactPersonName || !contactNumber || !emailId || !designation || !gstvat) {
+        if (!businessName || !contactPersonName || !contactNumber || !emailId || !designation || !gstvat || !title || !country_code) {
             return res.status(400).json({ message: "Missing Required Fields" });
         }
 
@@ -225,7 +276,7 @@ exports.addBasicInfo = async (req, res) => {
             }
 
             for (let contact of additionalContactInfo) {
-                if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation) {
+                if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation || !contact.title || !contact.country_code) {
                     return res.status(400).json({ message: "Missing Required Fields in Additional Contacts" });
                 }
             }
@@ -265,7 +316,8 @@ exports.addBasicInfo = async (req, res) => {
                 designation: designation,
                 gst_vat: gstvat,
                 country: country || "IN",
-                country_code: country_code || 91,
+                title: title,
+                country_code: country_code || 1,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
             });
@@ -287,7 +339,8 @@ exports.addBasicInfo = async (req, res) => {
                     designation: designation,
                     gst_vat: gstvat,
                     country: country || "IN",
-                    country_code: country_code || 91,
+                    title: title,
+                    country_code: country_code || 1,
                     created_by_id: created_by_id,
                     updated_by_id: created_by_id
                 },
@@ -306,7 +359,8 @@ exports.addBasicInfo = async (req, res) => {
                 email: contact.contactEmail,
                 designation: contact.designation,
                 country: contact.country || 'IN',
-                country_code: contact.country_code || 91,
+                title: contact.title,
+                country_code: contact.country_code || 1,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
             }));
@@ -373,6 +427,8 @@ exports.addBankDetails = async (req, res) => {
                 isPrimary: banks.isPrimary || false,
                 routing_bank_address: banks.routingBankAddress,
                 routing_account_indusind: banks.routingAccountIndusand,
+                iban: banks.iban,
+                intermediary_swift_code: banks.intermediary_swift_code,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
             }));
@@ -452,7 +508,7 @@ exports.updatevendor_id = async (req, res) => {
 
     var vendor_id = req.params.vendor_id || req.body.vendor_id;
 
-    var { businessName, contactPersonName, contactNumber, emailId, designation, gstvat, country, address, bankDetails, additionalContactInfo } = req.body;
+    var { businessName, contactPersonName, contactNumber, emailId, designation, gstvat, country, address, bankDetails, additionalContactInfo, title, country_code } = req.body;
 
     if (!vendor_id) {
         return res.status(400).json({ message: "Missing Vendor ID" });
@@ -460,7 +516,7 @@ exports.updatevendor_id = async (req, res) => {
 
     var created_by_id = req.user_id;
 
-    if (!businessName || !contactPersonName || !contactNumber || !emailId || !designation || !gstvat) {
+    if (!businessName || !contactPersonName || !contactNumber || !emailId || !designation || !gstvat || !title || !country_code) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
@@ -470,7 +526,7 @@ exports.updatevendor_id = async (req, res) => {
         }
 
         for (let contact of additionalContactInfo) {
-            if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation) {
+            if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation || !contact.title || !contact.country_code) {
                 return res.status(400).json({ message: "Missing Required Fields in Additional Contacts" });
             }
         }
@@ -522,6 +578,8 @@ exports.updatevendor_id = async (req, res) => {
                 email: emailId,
                 designation: designation,
                 gst_vat: gstvat,
+                title: title,
+                country_code: country_code || 1,
                 country: country || 'IN',
                 updated_by_id: created_by_id
             },
@@ -537,8 +595,9 @@ exports.updatevendor_id = async (req, res) => {
                 number: contact.contactNumber,
                 email: contact.contactEmail,
                 designation: contact.designation,
+                title: contact.title,
                 country: contact.country || 'IN',
-                country_code: contact.country_code || 91,
+                country_code: contact.country_code || 1,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
             }));
@@ -589,6 +648,8 @@ exports.updatevendor_id = async (req, res) => {
                 isPrimary: banks.isPrimary || false,
                 routing_bank_address: banks.routingBankAddress,
                 routing_account_indusind: banks.routingAccountIndusand,
+                iban: banks.iban,
+                intermediary_swift_code: banks.intermediary_swift_code,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
             }));
