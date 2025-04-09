@@ -1,6 +1,8 @@
 const { Vendor, AdditionalContactInfo } = require('../models/vendors')
-const { Address, BankDetails } = require('../models/address')
+const { Address, AddressType, BankDetails } = require('../models/address')
 const { Op, fn, col, where } = require("sequelize");
+const { Title, CommonCountry } = require('../models/masters');
+
 
 exports.basic_info = async (req, res) => {
 
@@ -698,16 +700,45 @@ exports.get_allvendors = async (req, res) => {
             include: [
                 {
                     model: Address,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"]
+                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"],
+                    include: [
+                        {
+                            model: AddressType,
+                            as: "VendorAddressType",
+                            attributes: ["type"],
+                        },
+                    ],
                 },
                 {
                     model: BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary"],
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary", "intermediary_swift_code", "iban"],
                     order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalContactInfo,
-                    attributes: ["name", "number", "email", "designation", "country"]
+                    attributes: ["name", "number", "email", "designation", "country", "title", "country_code"],
+                    include: [
+                        {
+                            model: Title,
+                            as: "vendortitle_info",
+                            attributes: ["title"],
+                        },
+                        {
+                            model: CommonCountry,
+                            as: "vendor_additional",
+                            attributes: ["id", "name", "code", "phone"],
+                        },
+                    ],
+                },
+                {
+                    model: Title,
+                    as: "vendor_title_info",
+                    attributes: ["title"],
+                },
+                {
+                    model: CommonCountry,
+                    as: "vendor_countrycode",
+                    attributes: ["id", "name", "code", "phone"],
                 }
             ],
             order: [['id', 'DESC']]
@@ -723,6 +754,10 @@ exports.get_allvendors = async (req, res) => {
             designation: vendor.designation,
             gstvat: vendor.gst_vat,
             country: vendor.country || null,
+            title_id: vendor.title || "",
+            title: vendor.vendor_title_info ? vendor.vendor_title_info.title : "",
+            country_code_id: vendor.country_code || "",
+            country_code: vendor.vendor_countrycode ? vendor.vendor_countrycode.phone : "",
             address: (vendor.addresses || []).map(addr => ({
                 doorNo: addr.address_line1,
                 street: addr.address_line2 || "",
@@ -734,7 +769,7 @@ exports.get_allvendors = async (req, res) => {
                 postalCode: addr.postal_code,
                 landMark: addr.landmark || "",
                 mapLink: addr.map_link || "",
-                addressType: addr.address_type || ""
+                addressType: addr.VendorAddressType ? addr.VendorAddressType.type : "",
             })),
             bankDetails: (vendor.bank_details || []).map(bank => ({
                 name: bank.name || ' ',
@@ -750,14 +785,20 @@ exports.get_allvendors = async (req, res) => {
                 swiftCode: bank.swift_code || "",
                 isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
-                routingAccountIndusand: bank.routing_account_indusind || ""
+                routingAccountIndusand: bank.routing_account_indusind || "",
+                iban: bank.iban || "",
+                intermediary_swift_code: bank.intermediary_swift_code || ""
             })),
             additionalContactInfo: (vendor.additional_contact_infos || []).map(contact => ({
                 name: contact.name,
                 contactNumber: contact.number,
                 contactEmail: contact.email,
                 designation: contact.designation,
-                country: contact.country || ""
+                country: contact.country || "",
+                title_id: contact.title || "",
+                title: contact.vendortitle_info ? contact.vendortitle_info.title : "",
+                country_codeid: contact.country_code || "",
+                country_code: contact.vendor_additional ? contact.vendor_additional.phone : ""
             }))
         }));
 
@@ -783,15 +824,45 @@ exports.particularvendor_details = async (req, res) => {
             include: [
                 {
                     model: Address,
-                    attributes: ["address_line1", "address_line2", "address_line3", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"]
+                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"],
+                    include: [
+                        {
+                            model: AddressType,
+                            as: "VendorAddressType",
+                            attributes: ["type"],
+                        },
+                    ],
                 },
                 {
                     model: BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary"],
+                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary", "intermediary_swift_code", "iban"],
+                    order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalContactInfo,
-                    attributes: ["name", "number", "email", "designation", "country"]
+                    attributes: ["name", "number", "email", "designation", "country", "title", "country_code"],
+                    include: [
+                        {
+                            model: Title,
+                            as: "vendortitle_info",
+                            attributes: ["title"],
+                        },
+                        {
+                            model: CommonCountry,
+                            as: "vendor_additional",
+                            attributes: ["id", "name", "code", "phone"],
+                        },
+                    ],
+                },
+                {
+                    model: Title,
+                    as: "vendor_title_info",
+                    attributes: ["title"],
+                },
+                {
+                    model: CommonCountry,
+                    as: "vendor_countrycode",
+                    attributes: ["id", "name", "code", "phone"],
                 }
             ],
             order: [[BankDetails, "isPrimary", "DESC"]]
@@ -807,6 +878,10 @@ exports.particularvendor_details = async (req, res) => {
             designation: vendor.designation,
             gstvat: vendor.gst_vat,
             country: vendor.country || null,
+            title_id: vendor.title || "",
+            title: vendor.vendor_title_info ? vendor.vendor_title_info.title : "",
+            country_code_id: vendor.country_code || "",
+            country_code: vendor.vendor_countrycode ? vendor.vendor_countrycode.phone : "",
             address: (vendor.addresses || []).map(addr => ({
                 doorNo: addr.address_line1,
                 street: addr.address_line2 || "",
@@ -818,10 +893,10 @@ exports.particularvendor_details = async (req, res) => {
                 postalCode: addr.postal_code,
                 landMark: addr.landmark || "",
                 mapLink: addr.map_link || "",
-                addressType: addr.address_type || ""
+                addressType: addr.VendorAddressType ? addr.VendorAddressType.type : "",
             })),
             bankDetails: (vendor.bank_details || []).map(bank => ({
-                name: bank.name,
+                name: bank.name || ' ',
                 accountNo: bank.account_number,
                 bankName: bank.bank_name,
                 ifscCode: bank.ifsc_code,
@@ -829,23 +904,31 @@ exports.particularvendor_details = async (req, res) => {
                 address2: bank.address_line2 || "",
                 address3: bank.address_line3 || "",
                 country: bank.country || "",
+                currency: bank.currency || 1,
                 routingBank: bank.routing_bank || "",
                 swiftCode: bank.swift_code || "",
-                currency: bank.currency || "INR",
                 isPrimary: bank.isPrimary || false,
                 routingBankAddress: bank.routing_bank_address || "",
-                routingAccountIndusand: bank.routing_account_indusind || ""
+                routingAccountIndusand: bank.routing_account_indusind || "",
+                iban: bank.iban || "",
+                intermediary_swift_code: bank.intermediary_swift_code || ""
             })),
             additionalContactInfo: (vendor.additional_contact_infos || []).map(contact => ({
                 name: contact.name,
                 contactNumber: contact.number,
                 contactEmail: contact.email,
                 designation: contact.designation,
-                country: contact.country || ""
+                country: contact.country || "",
+                title_id: contact.title || "",
+                title: contact.vendortitle_info ? contact.vendortitle_info.title : "",
+                country_codeid: contact.country_code || "",
+                country_code: contact.vendor_additional ? contact.vendor_additional.phone : ""
             }))
         }));
 
-        res.json({ vendors: formattedVendors });
+        // res.json({ vendors: formattedVendors });
+        res.json(formattedVendors[0] || {});
+
     } catch (error) {
         console.error("Error fetching vendors:", error);
         res.status(400).json({ message: "Internal Server Error" });

@@ -28,9 +28,11 @@ customer_BankDetails.belongsTo(Customer, { foreignKey: "user_id", targetKey: "cu
 Customer.hasMany(AdditionalCustomersContactInfo, { foreignKey: "customerid", sourceKey: "customerid" });
 AdditionalCustomersContactInfo.belongsTo(Customer, { foreignKey: "customerid", targetKey: "customerid" });
 
+// ************* All Customers
 CustomerAddress.belongsTo(AddressType, { foreignKey: "address_type", as: "AddressType", });
 
 AddressType.hasMany(CustomerAddress, { foreignKey: "address_type", as: "customer_addresses", });
+
 
 AdditionalCustomersContactInfo.belongsTo(Title, { foreignKey: "title", as: "title_info", });
 
@@ -48,5 +50,28 @@ CommonCountry.hasMany(Customer, { foreignKey: "country_code", sourceKey: "id", a
 AdditionalCustomersContactInfo.belongsTo(CommonCountry, { foreignKey: "country_code", targetKey: "id", as: "customer_additional", });
 
 CommonCountry.hasMany(AdditionalCustomersContactInfo, { foreignKey: "country_code", sourceKey: "id", as: "customer_additional", });
+
+
+// Vendors Get
+
+Address.belongsTo(AddressType, { foreignKey: "address_type", as: "VendorAddressType", });
+
+AddressType.hasMany(Address, { foreignKey: "address_type", as: "vendor_address", });
+
+AdditionalContactInfo.belongsTo(Title, { foreignKey: "title", as: "vendortitle_info", });
+
+Title.hasMany(AdditionalContactInfo, { foreignKey: "title", as: "vendortitle_info", });
+
+Vendor.belongsTo(Title, { foreignKey: "title", as: "vendor_title_info", });
+
+Title.hasMany(Vendor, { foreignKey: "title", as: "vendor_title_info", });
+
+Vendor.belongsTo(CommonCountry, { foreignKey: "country_code", targetKey: "id", as: "vendor_countrycode", });
+
+CommonCountry.hasMany(Vendor, { foreignKey: "country_code", sourceKey: "id", as: "vendor_countrycode", });
+
+AdditionalContactInfo.belongsTo(CommonCountry, { foreignKey: "country_code", targetKey: "id", as: "vendor_additional", });
+
+CommonCountry.hasMany(AdditionalContactInfo, { foreignKey: "country_code", sourceKey: "id", as: "vendor_additional", });
 
 module.exports = { Vendor, Address, BankDetails, AdditionalContactInfo, AuthUser, UserCompany, Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails, AddressType };
