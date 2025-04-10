@@ -28,6 +28,7 @@ app.use(middleware);
 // const dbQuery = require('./db_query');
 
 app.use(require('./src/routes/routes'));
+app.use(require('./src/routes/product_routes'));
 
 app.listen(process.env.PORT, function () {
     console.log("node is started at : " + process.env.PORT + "")
