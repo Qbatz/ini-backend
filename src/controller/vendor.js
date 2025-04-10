@@ -32,11 +32,7 @@ exports.basic_info = async (req, res) => {
         }
     }
 
-    if (additionalContactInfo) {
-        if (!Array.isArray(additionalContactInfo) || additionalContactInfo.length === 0) {
-            return res.status(400).json({ message: "Invalid Additional Contacts" });
-        }
-
+    if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
         for (let contact of additionalContactInfo) {
             if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation || !contact.title || !contact.country_code) {
                 return res.status(400).json({ message: "Missing Required Fields in Additional Contacts" });
@@ -44,11 +40,7 @@ exports.basic_info = async (req, res) => {
         }
     }
 
-    if (bankDetails) {
-        if (!Array.isArray(bankDetails) || bankDetails.length === 0) {
-            return res.status(400).json({ message: "Invalid Banking Details" });
-        }
-
+    if (Array.isArray(bankDetails) && bankDetails.length > 0) {
         for (let bank of bankDetails) {
             if (!bank.bankName || !bank.accountNo || !bank.ifscCode || !bank.address1) {
                 return res.status(400).json({ message: "Missing Required Fields in Banking Details" });
@@ -56,11 +48,7 @@ exports.basic_info = async (req, res) => {
         }
     }
 
-    if (address_info) {
-        if (!Array.isArray(address_info) || address_info.length === 0) {
-            return res.status(400).json({ message: "Invalid Address Details" });
-        }
-
+    if (Array.isArray(address_info) && address_info.length > 0) {
         for (let addr of address_info) {
             if (!addr.doorNo || !addr.postalCode || !addr.addressType) {
                 return res.status(400).json({ message: "Missing Required Fields in Address Details" });
@@ -272,10 +260,7 @@ exports.addBasicInfo = async (req, res) => {
             return res.status(400).json({ message: "Missing Required Fields" });
         }
 
-        if (additionalContactInfo) {
-            if (!Array.isArray(additionalContactInfo) || additionalContactInfo.length === 0) {
-                return res.status(400).json({ message: "Invalid Additional Contacts" });
-            }
+        if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
 
             for (let contact of additionalContactInfo) {
                 if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation || !contact.title || !contact.country_code) {
@@ -522,10 +507,7 @@ exports.updatevendor_id = async (req, res) => {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
-    if (additionalContactInfo) {
-        if (!Array.isArray(additionalContactInfo) || additionalContactInfo.length === 0) {
-            return res.status(400).json({ message: "Invalid Additional Contacts" });
-        }
+    if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
 
         for (let contact of additionalContactInfo) {
             if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation || !contact.title || !contact.country_code) {
@@ -534,23 +516,20 @@ exports.updatevendor_id = async (req, res) => {
         }
     }
 
-    if (!Array.isArray(bankDetails) || bankDetails.length === 0) {
-        return res.status(400).json({ message: "Invalid Banking Details" });
-    }
+    if (Array.isArray(bankDetails) && bankDetails.length > 0) {
 
-    for (let contact of bankDetails) {
-        if (!contact.bankName || !contact.accountNo || !contact.ifscCode || !contact.address1) {
-            return res.status(400).json({ message: "Missing Required Fields in Banking Details" });
+        for (let contact of bankDetails) {
+            if (!contact.bankName || !contact.accountNo || !contact.ifscCode || !contact.address1) {
+                return res.status(400).json({ message: "Missing Required Fields in Banking Details" });
+            }
         }
     }
 
-    if (!Array.isArray(address) || address.length === 0) {
-        return res.status(400).json({ message: "Invalid Address Details" });
-    }
-
-    for (let contact of address) {
-        if (!contact.doorNo || !contact.postalCode || !contact.addressType) {
-            return res.status(400).json({ message: "Missing Required Fields in Address Details" });
+    if (Array.isArray(address) && bankDetails.length > 0) {
+        for (let contact of address) {
+            if (!contact.doorNo || !contact.postalCode || !contact.addressType) {
+                return res.status(400).json({ message: "Missing Required Fields in Address Details" });
+            }
         }
     }
 
@@ -768,7 +747,7 @@ exports.get_allvendors = async (req, res) => {
                 country: addr.country || "",
                 postalCode: addr.postal_code,
                 landMark: addr.landmark || "",
-                mapLink: addr.map_link || "",
+                mapLink: addr.maplink || "",
                 addressType: addr.VendorAddressType ? addr.VendorAddressType.type : "",
             })),
             bankDetails: (vendor.bank_details || []).map(bank => ({
@@ -892,7 +871,7 @@ exports.particularvendor_details = async (req, res) => {
                 country: addr.country || "",
                 postalCode: addr.postal_code,
                 landMark: addr.landmark || "",
-                mapLink: addr.map_link || "",
+                mapLink: addr.maplink || "",
                 addressType: addr.VendorAddressType ? addr.VendorAddressType.type : "",
             })),
             bankDetails: (vendor.bank_details || []).map(bank => ({

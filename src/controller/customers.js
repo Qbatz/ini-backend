@@ -13,11 +13,7 @@ exports.add_customersall = async (req, res) => {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
-    if (address) {
-        if (!Array.isArray(address) || address.length === 0) {
-            return res.status(400).json({ message: "Invalid Address Details" });
-        }
-
+    if (Array.isArray(address) && address.length > 0) {
         for (let addre of address) {
             if (!addre.doorNo || !addre.postalCode || !addre.addressType) {
                 return res.status(400).json({ message: "Missing Required Fields in Address Details" });
@@ -25,11 +21,7 @@ exports.add_customersall = async (req, res) => {
         }
     }
 
-    if (bankDetails) {
-        if (!Array.isArray(bankDetails) || bankDetails.length === 0) {
-            return res.status(400).json({ message: "Invalid Address Details" });
-        }
-
+    if (Array.isArray(bankDetails) && bankDetails.length > 0) {
         for (let banks of bankDetails) {
             if (!banks.name || !banks.currency || !banks.accountNo || !banks.ifscCode) {
                 return res.status(400).json({ message: "Missing Required Fields in Bank Details" });
@@ -37,10 +29,7 @@ exports.add_customersall = async (req, res) => {
         }
     }
 
-    if (additionalContactInfo) {
-        if (!Array.isArray(additionalContactInfo) || additionalContactInfo.length === 0) {
-            return res.status(400).json({ message: "Invalid Address Details" });
-        }
+    if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
 
         for (let adds_detail of additionalContactInfo) {
             if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
@@ -609,13 +598,7 @@ exports.updatecustomer = async (req, res) => {
             return res.status(400).json({ message: "Client ID is required" });
         }
 
-        console.log(address);
-
-        if (address) {
-            if (!Array.isArray(address) || address.length === 0) {
-                return res.status(400).json({ message: "Invalid Address Details" });
-            }
-
+        if (Array.isArray(address) && address.length > 0) {
             for (let addre of address) {
                 if (!addre.doorNo || !addre.postalCode || !addre.addressType) {
                     return res.status(400).json({ message: "Missing Required Fields in Address Details" });
@@ -623,11 +606,7 @@ exports.updatecustomer = async (req, res) => {
             }
         }
 
-        if (bankDetails) {
-            if (!Array.isArray(bankDetails) || bankDetails.length === 0) {
-                return res.status(400).json({ message: "Invalid Bank Details" });
-            }
-
+        if (Array.isArray(bankDetails) && bankDetails.length > 0) {
             for (let banks of bankDetails) {
                 if (!banks.name || !banks.currency || !banks.accountNo || !banks.ifscCode) {
                     return res.status(400).json({ message: "Missing Required Fields in Bank Details" });
@@ -635,11 +614,7 @@ exports.updatecustomer = async (req, res) => {
             }
         }
 
-        if (additionalContactInfo) {
-            if (!Array.isArray(additionalContactInfo) || additionalContactInfo.length === 0) {
-                return res.status(400).json({ message: "Invalid Address Details" });
-            }
-
+        if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
             for (let adds_detail of additionalContactInfo) {
                 if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
                     return res.status(400).json({ message: "Missing Required Fields in Additional Contact Info" });
@@ -793,10 +768,7 @@ exports.addBasicInfo = async (req, res) => {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
-    if (additionalContactInfo) {
-        if (!Array.isArray(additionalContactInfo) || additionalContactInfo.length === 0) {
-            return res.status(400).json({ message: "Invalid Address Details" });
-        }
+    if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
 
         for (let adds_detail of additionalContactInfo) {
             if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
@@ -1017,8 +989,6 @@ exports.addAddressInfo = async (req, res) => {
     if (!address) {
         return res.status(400).json({ message: "Missing Address Details" });
     }
-
-    console.log(address);
 
     if (address) {
         if (!Array.isArray(address) || address.length === 0) {
