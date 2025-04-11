@@ -10,4 +10,8 @@ router.post('/product/subCategory', category_routes.add_subCategory);
 
 router.get('/product/subCategory', category_routes.get_subCategory);
 
+router.post('/product/brand', category_routes.add_brand);
+
+router.get('/product/brand', category_routes.get_brand);
+
 module.exports = router;

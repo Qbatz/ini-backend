@@ -1,4 +1,4 @@
-const { Category, SubCategory } = require('../models/category')
+const { Category, SubCategory, ProductBrand } = require('../models/category')
 
 exports.add_category = async (req, res) => {
 
@@ -143,4 +143,69 @@ exports.get_subCategory = async (req, res) => {
         return res.status(400).json({ message: "Error to Get Category", reason: error.message })
     }
 
+}
+
+exports.add_brand = async (req, res) => {
+
+    var { name } = req.body;
+
+    var created_by_id = req.user_id;
+
+    try {
+
+        if (!name) {
+            return res.status(400).json({ message: "Missing Brandஃஃ Name" });
+        }
+
+        var check_name = await ProductBrand.findOne({ where: { brand_name: name, created_by_id: created_by_id, is_active: true } });
+
+        if (check_name) {
+            return res.status(400).json({ message: "Brand Name Already Exists" });
+        }
+
+        let brand_code;
+        let isUnique = false;
+
+        while (!isUnique) {
+            const randomNumber = Math.floor(100000 + Math.random() * 900000);
+            brand_code = `${randomNumber}`;
+
+            const existingBrandCode = await ProductBrand.findOne({ where: { brand_code: brand_code } });
+
+            if (!existingBrandCode) {
+                isUnique = true;
+            }
+        }
+
+        await ProductBrand.create({
+            brand_code: brand_code,
+            brand_name: name,
+            created_by_id: created_by_id,
+            updated_by_id: 0
+        })
+
+        return res.status(200).json({ message: "Added successfully" })
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Add Brand", reason: error.message })
+    }
+
+}
+
+exports.get_brand = async (req, res) => {
+
+    var created_by_id = req.user_id;
+
+    try {
+
+        var get_all_brand = await ProductBrand.findAll({
+            attributes: [['brand_code', 'id'], ['brand_name', 'name']],
+            where: { created_by_id: created_by_id, is_active: true }
+        })
+
+        return res.status(200).json(get_all_brand)
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Get Brand", reason: error.message })
+    }
 }

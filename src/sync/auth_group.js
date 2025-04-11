@@ -1,11 +1,11 @@
 const sequelize = require('../config/db');
-const { Category } = require('../models/category');
+const { ProductBrand } = require('../models/category');
 
 async function initDB() {
     try {
-        await sequelize.sync({ alter: true });
+        await ProductBrand.sync({ alter: true });
     } catch (error) {
-        // console.log(error);
+        console.log(error);
     }
 }
 
