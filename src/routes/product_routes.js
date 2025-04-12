@@ -1,6 +1,9 @@
 const express = require('express');
 const category_routes = require('../controller/category');
+const productsroutes = require('../controller/products');
 const router = express.Router();
+const multer = require('multer');
+const upload = multer();
 
 router.post('/product/category', category_routes.add_category);
 
@@ -13,5 +16,7 @@ router.get('/product/subCategory', category_routes.get_subCategory);
 router.post('/product/brand', category_routes.add_brand);
 
 router.get('/product/brand', category_routes.get_brand);
+
+router.post('/product/product', upload.fields([{ name: 'images', maxCount: 10 }, { name: 'technicaldocs', maxCount: 10 }]), productsroutes.add_product);
 
 module.exports = router;

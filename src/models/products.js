@@ -20,6 +20,10 @@ const Products = sequelize.define('Products', {
         type: DataTypes.STRING(100),
         allowNull: false,
     },
+    long_description: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+    },
     quantity: {
         type: DataTypes.BIGINT,
         defaultValue: 1
@@ -47,7 +51,7 @@ const Products = sequelize.define('Products', {
         type: DataTypes.BIGINT,
     },
     serialNo: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING(500),
     },
     category: {
         type: DataTypes.STRING(50),
@@ -74,7 +78,7 @@ const Products = sequelize.define('Products', {
         type: DataTypes.STRING(50),
     },
     additional_fields: {
-        type: DataTypes.STRING(500),
+        type: DataTypes.JSON,
     },
     is_active: {
         type: DataTypes.BOOLEAN,
@@ -137,4 +141,143 @@ const Unit = sequelize.define("unit", {
     timestamps: false
 })
 
-module.exports = { Products, Unit }
+const Inventory = sequelize.define("inventory", {
+    id: {
+        type: DataTypes.BIGINT,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    inventory_code: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        unique: true
+    },
+    product_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    category_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    subcategory_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    count: {
+        type: DataTypes.BIGINT,
+    },
+    is_active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
+    created_by_id: {
+        type: DataTypes.BIGINT
+    },
+    updated_by_id: {
+        type: DataTypes.BIGINT
+    },
+    created_on: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+    updated_on: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+}, {
+    tableName: "inventory",
+    timestamps: false
+})
+
+const ProductImages = sequelize.define("product_images", {
+    id: {
+        type: DataTypes.BIGINT,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    image_url: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+    },
+    product_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    category_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    subcategory_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    is_active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
+    created_by_id: {
+        type: DataTypes.BIGINT
+    },
+    updated_by_id: {
+        type: DataTypes.BIGINT
+    },
+    created_on: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+    updated_on: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+}, {
+    tableName: "product_images",
+    timestamps: false
+})
+
+const TechnicalDocuments = sequelize.define("technical_documents", {
+    id: {
+        type: DataTypes.BIGINT,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    document_url: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+    },
+    product_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    category_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    subcategory_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    is_active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
+    created_by_id: {
+        type: DataTypes.BIGINT
+    },
+    updated_by_id: {
+        type: DataTypes.BIGINT
+    },
+    created_on: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+    updated_on: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+}, {
+    tableName: "technical_documents",
+    timestamps: false
+})
+
+module.exports = { Products, Unit, Inventory, ProductImages, TechnicalDocuments }

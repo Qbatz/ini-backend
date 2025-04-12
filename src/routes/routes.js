@@ -8,9 +8,6 @@ const mastersroute = require('../controller/masters');
 
 const router = express.Router();
 
-const multer = require('multer');
-const upload = multer();
-
 router.post('/user/email_verify', loginrouter.email_verify);
 
 router.post('/user/forgot-password', loginrouter.forgot_password);
