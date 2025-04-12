@@ -4,6 +4,8 @@ const { AuthUser } = require("./users");
 const { UserCompany } = require("./register");
 const { Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails } = require("./customers");
 const { Title, CommonCountry, } = require("./masters");
+const { Products, Unit, Inventory, ProductImages, TechnicalDocuments } = require("./products");
+const { Category, SubCategory, ProductBrand } = require("./category");
 
 AuthUser.hasOne(UserCompany, { foreignKey: "user_id", sourceKey: "id" });
 UserCompany.belongsTo(AuthUser, { foreignKey: "user_id", targetKey: "id" });
@@ -73,5 +75,27 @@ CommonCountry.hasMany(Vendor, { foreignKey: "country_code", sourceKey: "id", as:
 AdditionalContactInfo.belongsTo(CommonCountry, { foreignKey: "country_code", targetKey: "id", as: "vendor_additional", });
 
 CommonCountry.hasMany(AdditionalContactInfo, { foreignKey: "country_code", sourceKey: "id", as: "vendor_additional", });
+
+// products
+
+Products.belongsTo(Category, { foreignKey: "category", targetKey: 'category_code', as: "product_category", });
+
+Category.hasMany(Products, { foreignKey: "category", sourceKey: "category_code", as: "product_category", });
+
+Products.belongsTo(SubCategory, { foreignKey: "subcategory", targetKey: 'subcategory_code', as: "product_sub_category", });
+
+SubCategory.hasMany(Products, { foreignKey: "subcategory", sourceKey: "subcategory_code", as: "product_sub_category", });
+
+Products.belongsTo(ProductBrand, { foreignKey: "brand", targetKey: 'brand_code', as: "product_brand", });
+
+ProductBrand.hasMany(Products, { foreignKey: "brand", sourceKey: "brand_code", as: "product_brand", });
+
+ProductImages.belongsTo(Products, { foreignKey: "product_code", targetKey: 'product_code', as: "product_images", });
+
+Products.hasMany(ProductImages, { foreignKey: "product_code", sourceKey: "product_code", as: "product_images", });
+
+TechnicalDocuments.belongsTo(Products, { foreignKey: "product_code", targetKey: 'product_code', as: "product_documents", });
+
+Products.hasMany(TechnicalDocuments, { foreignKey: "product_code", sourceKey: "product_code", as: "product_documents", });
 
 module.exports = { Vendor, Address, BankDetails, AdditionalContactInfo, AuthUser, UserCompany, Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails, AddressType };

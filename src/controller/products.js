@@ -1,6 +1,8 @@
 const path = require('path')
 const { Products, Unit, Inventory, ProductImages, TechnicalDocuments } = require('../models/products')
 const uploadImage = require('../utils/upload_image')
+const { Op, fn, col, where } = require("sequelize");
+const { Category, SubCategory, ProductBrand } = require('../models/category');
 
 exports.add_product = async (req, res) => {
 
@@ -166,5 +168,118 @@ exports.add_product = async (req, res) => {
 
     } catch (error) {
         return res.status(400).json({ message: "Error to Add Product Details", reason: error.message });
+    }
+}
+
+exports.get_all_products = async (req, res) => {
+
+    try {
+        const createdById = req.user_id;
+        const searchKeyword = req.query.searchKeyword || "";
+        const startDate = req.query.startDate || "";
+        const endDate = req.query.endDate || "";
+
+        let whereCondition = {
+            created_by_id: createdById,
+            is_active: true,
+            product_code: {
+                [Op.like]: `%${searchKeyword.toLowerCase()}%`
+            }
+        };
+
+        if (startDate && endDate) {
+            whereCondition.created_on = {
+                [Op.between]: [new Date(startDate), new Date(endDate)]
+            };
+        } else if (startDate) {
+            whereCondition.created_on = {
+                [Op.gte]: new Date(startDate)
+            };
+        } else if (endDate) {
+            whereCondition.created_on = {
+                [Op.lte]: new Date(endDate)
+            };
+        }
+
+        const products = await Products.findAll({
+            where: whereCondition,
+            include: [
+                {
+                    model: Category,
+                    as: 'product_category',
+                    attributes: ["category_name"],
+                }, {
+                    model: SubCategory,
+                    as: 'product_sub_category',
+                    attributes: ["subcategory_name"],
+                }, {
+                    model: ProductBrand,
+                    as: 'product_brand',
+                    attributes: ["brand_name"],
+                },
+                {
+                    model: ProductImages,
+                    as: 'product_images',
+                    attributes: ["id", "image_url", "product_code"],
+                },
+                {
+                    model: TechnicalDocuments,
+                    as: 'product_documents',
+                    attributes: ["id", "document_url", "product_code"],
+                }
+            ],
+            order: [['id', 'DESC']]
+        });
+
+        const formattedProducts = products.map(product => ({
+            productCode: product.product_code,
+            productName: product.product_name,
+            description: product.description,
+            quantity: product.quantity,
+            unit: product.unit,
+            price: product.price,
+            currency: product.currency || "",
+            weight: product.weight || "",
+            discount: product.discount || "",
+            hsnCode: product.hsnCode || "",
+            gst: product.gst || "",
+            serialNo: jsonparsefunc(product.serialNo) || [],
+            categoryId: product.category || "",
+            categoryName: product.product_category ? product.product_category.category_name : "",
+            subCategoryId: product.subcategory || "",
+            subCategoryName: product.product_sub_category ? product.product_sub_category.subcategory_name : "",
+            brandId: product.brand || "",
+            brandName: product.product_brand ? product.product_brand.brand_name : "",
+            make: product.make || "",
+            countryOfOrigin: product.countryOfOrigin || "",
+            manufaturingYearAndMonth: product.manufaturingYearAndMonth || "",
+            State: product.State || "",
+            district: product.district || "",
+            additional_fields: jsonparsefunc(product.additional_fields) || "",
+            images: (product.product_images || []).map(img => ({
+                id: img.id,
+                url: img.image_url || "",
+                product_code: img.product_code || ""
+            })),
+            technicaldocs: (product.product_documents || []).map(doc => ({
+                id: doc.id,
+                url: doc.document_url || "",
+                product_code: doc.product_code || ""
+            })),
+        }));
+
+        res.json({ products: formattedProducts });
+
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Get Product Details", reason: error.message });
+    }
+}
+
+function jsonparsefunc(value, defaultValue = []) {
+    try {
+        return JSON.parse(value);
+    } catch (err) {
+        return defaultValue;
     }
 }

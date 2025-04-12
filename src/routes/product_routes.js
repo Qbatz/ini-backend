@@ -19,4 +19,6 @@ router.get('/product/brand', category_routes.get_brand);
 
 router.post('/product/product', upload.fields([{ name: 'images', maxCount: 10 }, { name: 'technicaldocs', maxCount: 10 }]), productsroutes.add_product);
 
+router.get('/product/product', productsroutes.get_all_products);
+
 module.exports = router;
