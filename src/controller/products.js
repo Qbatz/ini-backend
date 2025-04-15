@@ -10,7 +10,7 @@ exports.add_product = async (req, res) => {
 
     var created_by_id = req.user_id;
 
-    if (!productCode || !productName || !description || !unit || !category) {
+    if (!productCode || !productName || !description || !unit || !category || !brand) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
@@ -57,15 +57,15 @@ exports.add_product = async (req, res) => {
             product_code: productCode,
             product_name: productName,
             description: description,
-            quantity: quantity,
+            quantity: quantity || 0,
             unit: unit,
             price: price || 0,
             currency: currency,
-            weight: weight,
-            discount: discount,
+            weight: weight || 0,
+            discount: discount || 0,
             hsn_code: hsnCode,
-            gst: gst,
-            serialNo: JSON.stringify(serialNo),
+            gst: gst || 0,
+            serialNo: JSON.stringify(serialNo) || [],
             category: category,
             brand: brand,
             subcategory: subCategory,
@@ -281,5 +281,132 @@ function jsonparsefunc(value, defaultValue = []) {
         return JSON.parse(value);
     } catch (err) {
         return defaultValue;
+    }
+}
+
+exports.update_product = async (req, res) => {
+
+    var { productCode, productName, description, quantity, unit, price, currency, weight, discount, hsnCode, gst, serialNo, category, subCategory, make, countryOfOrigin, manufaturingYearAndMonth, State, district, additional_fields, brand } = req.body;
+
+    var created_by_id = req.user_id;
+
+    if (!productCode || !productName || !description || !unit || !category) {
+        return res.status(400).json({ message: "Missing Required Fields" });
+    }
+
+    if (quantity) {
+        if (!Array.isArray(serialNo) || serialNo.length === 0) {
+            return res.status(400).json({ message: "Missing Serial Number Details" });
+        }
+
+        if (serialNo.length !== quantity) {
+            return res.status(400).json({ message: `Serial number count (${serialNo.length}) does not match quantity (${quantity})` });
+        }
+    }
+
+    try {
+        var check_productcode = await Products.findOne({
+            where: {
+                product_code: productCode,
+                is_active: true
+            }
+        })
+
+        if (!check_productcode) {
+            return res.status(400).json({ message: "Invalid or Inactive Product Code" })
+        }
+
+        await Products.update({
+            product_name: productName,
+            description: description,
+            quantity: quantity,
+            unit: unit,
+            price: price || 0,
+            currency: currency,
+            weight: weight,
+            discount: discount,
+            hsn_code: hsnCode,
+            gst: gst,
+            serialNo: JSON.stringify(serialNo),
+            category: category,
+            brand: brand,
+            subcategory: subCategory,
+            make: make,
+            origin_country: countryOfOrigin,
+            manufaturing_year: manufaturingYearAndMonth,
+            district: district,
+            state: State,
+            additional_fields: additional_fields,
+        }, {
+            where: { product_code: productCode }
+        })
+
+        var find_product = await Inventory.findOne({
+            where: {
+                product_code: String(productCode),
+                category_code: String(category),
+                subcategory_code: String(subCategory),
+                is_active: true
+            }
+        })
+
+        if (find_product) {
+
+            // const newQuantity = parseInt(find_product.count) + parseInt(quantity);
+
+            await Inventory.update(
+                { count: quantity },
+                {
+                    where: {
+                        id: find_product.id
+                    }
+                }
+            );
+            console.log("Inventory updated.");
+        }
+
+        return res.status(200).json({ message: "Product Updated Successfully" })
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Update Product Details", reason: error.message });
+    }
+}
+
+exports.delete_product = async (req, res) => {
+
+    var { product_code } = req.body;
+
+    if (!product_code) {
+        return res.status(400).json({ message: "Missing Required Fields" });
+    }
+
+    try {
+        var check_productcode = await Products.findOne({
+            where: {
+                product_code: product_code,
+                is_active: true
+            }
+        })
+
+        if (!check_productcode) {
+            return res.status(400).json({ message: "Invalid or Inactive Product Code" })
+        }
+
+        await Products.update({
+            is_active: false
+        }, {
+            where: { product_code: product_code }
+        })
+
+        await Inventory.update({
+            is_active: false,
+        }, {
+            where: { product_code: product_code }
+        })
+
+        return res.status(200).json({ message: "Deleted Successfully" })
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Delete Product Details", reason: error.message });
     }
 }

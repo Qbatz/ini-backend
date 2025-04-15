@@ -21,4 +21,8 @@ router.post('/product/product', upload.fields([{ name: 'images', maxCount: 10 },
 
 router.get('/product/product', productsroutes.get_all_products);
 
+router.patch('/product/product', productsroutes.update_product);
+
+router.delete('/product/product', productsroutes.delete_product);
+
 module.exports = router;
