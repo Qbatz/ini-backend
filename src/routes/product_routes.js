@@ -25,4 +25,12 @@ router.patch('/product/product', productsroutes.update_product);
 
 router.delete('/product/product', productsroutes.delete_product);
 
+router.post('/product/add_image', upload.fields([{ name: 'image', maxCount: 1 }]), productsroutes.add_image);
+
+router.delete('/product/delete_image', productsroutes.delete_image);
+
+router.post('/product/add_docs', upload.fields([{ name: 'technicaldoc', maxCount: 1 }]), productsroutes.add_docs);
+
+router.delete('/product/delete_docs', productsroutes.delete_docs);
+
 module.exports = router;

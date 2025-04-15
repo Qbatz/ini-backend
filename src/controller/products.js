@@ -14,6 +14,8 @@ exports.add_product = async (req, res) => {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
+    console.log(req.body);
+
     const imageFiles = req.files['images'];
     const technicaldocsFiles = req.files['technicaldocs'];
 
@@ -68,7 +70,7 @@ exports.add_product = async (req, res) => {
             serialNo: JSON.stringify(serialNo) || [],
             category: category,
             brand: brand,
-            subcategory: subCategory,
+            subcategory: subCategory || 0,
             make: make,
             origin_country: countryOfOrigin,
             manufaturing_year: manufaturingYearAndMonth,
@@ -89,7 +91,7 @@ exports.add_product = async (req, res) => {
                     image_url: s3Url,
                     product_code: productCode,
                     category_code: category,
-                    subcategory_code: subCategory,
+                    subcategory_code: subCategory || 0,
                     created_by_id: created_by_id
                 });
             }
@@ -106,7 +108,7 @@ exports.add_product = async (req, res) => {
                     document_url: docu_url,
                     product_code: productCode,
                     category_code: category,
-                    subcategory_code: subCategory,
+                    subcategory_code: subCategory || 0,
                     created_by_id: created_by_id
                 });
             }
@@ -123,10 +125,10 @@ exports.add_product = async (req, res) => {
 
         if (find_product) {
 
-            const newQuantity = find_product.count + parseInt(quantity);
+            // const newQuantity = find_product.count + parseInt(quantity);
 
             await Inventory.update(
-                { count: newQuantity },
+                { count: quantity || 0 },
                 {
                     where: {
                         id: find_product.id
@@ -156,8 +158,8 @@ exports.add_product = async (req, res) => {
                 inventory_code: inventory_code,
                 product_code: productCode,
                 category_code: category,
-                subcategory_code: subCategory,
-                count: quantity,
+                subcategory_code: subCategory || 0,
+                count: quantity || 0,
                 created_by_id: created_by_id
             });
 
@@ -167,6 +169,7 @@ exports.add_product = async (req, res) => {
         return res.status(200).json({ message: "Product Added Successfully" })
 
     } catch (error) {
+        console.log(error);
         return res.status(400).json({ message: "Error to Add Product Details", reason: error.message });
     }
 }
@@ -182,8 +185,8 @@ exports.get_all_products = async (req, res) => {
         let whereCondition = {
             created_by_id: createdById,
             is_active: true,
-            product_code: {
-                [Op.like]: `%${searchKeyword.toLowerCase()}%`
+            product_name: {
+                [Op.iLike]: `%${searchKeyword.toLowerCase()}%`
             }
         };
 
@@ -221,14 +224,18 @@ exports.get_all_products = async (req, res) => {
                     model: ProductImages,
                     as: 'product_images',
                     attributes: ["id", "image_url", "product_code"],
+                    where: { is_active: true }
                 },
                 {
                     model: TechnicalDocuments,
                     as: 'product_documents',
                     attributes: ["id", "document_url", "product_code"],
+                    where: { is_active: true }
                 }
             ],
-            order: [['id', 'DESC']]
+            order: [['id', 'DESC'],
+            [{ model: ProductImages, as: 'product_images' }, 'id', 'ASC'],
+            [{ model: TechnicalDocuments, as: 'product_documents' }, 'id', 'ASC']]
         });
 
         const formattedProducts = products.map(product => ({
@@ -319,18 +326,18 @@ exports.update_product = async (req, res) => {
         await Products.update({
             product_name: productName,
             description: description,
-            quantity: quantity,
+            quantity: quantity || 0,
             unit: unit,
             price: price || 0,
             currency: currency,
-            weight: weight,
-            discount: discount,
+            weight: weight || 0,
+            discount: discount || 0,
             hsn_code: hsnCode,
-            gst: gst,
-            serialNo: JSON.stringify(serialNo),
+            gst: gst || 0,
+            serialNo: JSON.stringify(serialNo) || [],
             category: category,
             brand: brand,
-            subcategory: subCategory,
+            subcategory: subCategory || 0,
             make: make,
             origin_country: countryOfOrigin,
             manufaturing_year: manufaturingYearAndMonth,
@@ -355,7 +362,7 @@ exports.update_product = async (req, res) => {
             // const newQuantity = parseInt(find_product.count) + parseInt(quantity);
 
             await Inventory.update(
-                { count: quantity },
+                { count: quantity || 0 },
                 {
                     where: {
                         id: find_product.id
@@ -408,5 +415,177 @@ exports.delete_product = async (req, res) => {
 
     } catch (error) {
         return res.status(400).json({ message: "Error to Delete Product Details", reason: error.message });
+    }
+}
+
+exports.add_image = async (req, res) => {
+
+    const image = req.files?.['image'];
+    var productCode = req.body.productCode;
+
+    var created_by_id = req.user_id;
+
+    if (!image || !productCode) {
+        return res.status(400).json({ message: "Missing Mandatory Fields" })
+    }
+
+    try {
+        var check_productcode = await Products.findOne({
+            where: {
+                product_code: productCode,
+                is_active: true
+            }
+        })
+
+        if (!check_productcode) {
+            return res.status(400).json({ message: "Invalid or Inactive Product Code" })
+        }
+
+        var image_count = await ProductImages.count({
+            where: {
+                product_code: productCode,
+                is_active: true
+            }
+        })
+
+        if (image_count >= 10) {
+            return res.status(400).json({ message: "Maximum 10 images are allowed for a product" });
+        }
+
+        var file = image[0];
+
+        const ext = path.extname(file.originalname);
+        const uniqueName = `product-${Date.now()}-${Math.floor(Math.random() * 10000)}${ext}`;
+
+        const s3Url = await uploadImage.uploadToS3('images/', uniqueName, file);
+
+        await ProductImages.create({
+            image_url: s3Url,
+            product_code: productCode,
+            category_code: check_productcode.category,
+            subcategory_code: check_productcode.subcategory || 0,
+            created_by_id: created_by_id
+        });
+
+        return res.status(200).json({ message: "Image Added Successfully" });
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Add Product Images", reason: error.message });
+    }
+}
+
+exports.add_docs = async (req, res) => {
+
+    const document = req.files?.['technicaldoc'];
+    var productCode = req.body.productCode;
+
+    var created_by_id = req.user_id;
+
+    if (!document || !productCode) {
+        return res.status(400).json({ message: "Missing Mandatory Fields" })
+    }
+
+    try {
+        var check_productcode = await Products.findOne({
+            where: {
+                product_code: productCode,
+                is_active: true
+            }
+        })
+
+        if (!check_productcode) {
+            return res.status(400).json({ message: "Invalid or Inactive Product Code" })
+        }
+
+        var docs_count = await TechnicalDocuments.count({
+            where: {
+                product_code: productCode,
+                is_active: true
+            }
+        })
+
+        if (docs_count >= 10) {
+            return res.status(400).json({ message: "Maximum 10 Documents are allowed for a product" });
+        }
+
+        var file = document[0];
+
+        const ext = path.extname(file.originalname);
+        const uniqueName = `product-${Date.now()}-${Math.floor(Math.random() * 10000)}${ext}`;
+
+        const docu_url = await uploadImage.uploadToS3('technical_documents/', uniqueName, file);
+
+        await TechnicalDocuments.create({
+            document_url: docu_url,
+            product_code: productCode,
+            category_code: check_productcode.category,
+            subcategory_code: check_productcode.subcategory || 0,
+            created_by_id: created_by_id
+        });
+
+        return res.status(200).json({ message: "Document Added Successfully" });
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Add Product Documents", reason: error.message });
+    }
+}
+
+exports.delete_image = async (req, res) => {
+
+    var id = req.body.id;
+
+    if (!id) {
+        return res.status(400).json({ message: "Missing Mandatory Fields" })
+    }
+
+    try {
+        var check_image = await ProductImages.findOne({
+            where: { id, is_active: true }
+        })
+
+        console.log(check_image);
+
+        if (!check_image) {
+            return res.status(400).json({ message: "Image not found or already deleted" })
+        }
+
+        await ProductImages.update(
+            { is_active: false }, {
+            where: { id }
+        })
+
+        return res.status(200).json({ message: "Image Deleted successfully" });
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Delete Product Image", reason: error.message });
+    }
+}
+
+exports.delete_docs = async (req, res) => {
+
+    var id = req.body.id;
+
+    if (!id) {
+        return res.status(400).json({ message: "Missing Mandatory Fields" })
+    }
+
+    try {
+        var check_docs = await TechnicalDocuments.findOne({
+            where: { id, is_active: true }
+        })
+
+        if (!check_docs) {
+            return res.status(400).json({ message: "Document not found or already deleted" })
+        }
+
+        await TechnicalDocuments.update(
+            { is_active: false }, {
+            where: { id }
+        })
+
+        return res.status(200).json({ message: "Document Deleted successfully" });
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Delete Product Document", reason: error.message });
     }
 }
