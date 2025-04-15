@@ -33,4 +33,8 @@ router.post('/product/add_docs', upload.fields([{ name: 'technicaldoc', maxCount
 
 router.delete('/product/delete_docs', productsroutes.delete_docs);
 
+router.post('/product/change_image', upload.fields([{ name: 'image', maxCount: 1 }]), productsroutes.change_image);
+
+router.post('/product/change_docs', upload.fields([{ name: 'technicaldoc', maxCount: 1 }]), productsroutes.change_docs);
+
 module.exports = router;

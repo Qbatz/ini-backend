@@ -250,7 +250,7 @@ exports.get_all_products = async (req, res) => {
             currency: product.currency || "",
             weight: product.weight || "",
             discount: product.discount || "",
-            hsnCode: product.hsnCode || "",
+            hsnCode: product.hsn_code || "",
             gst: product.gst || "",
             serialNo: jsonparsefunc(product.serialNo) || [],
             categoryId: product.category || "",
@@ -260,9 +260,9 @@ exports.get_all_products = async (req, res) => {
             brandId: product.brand || "",
             brandName: product.product_brand ? product.product_brand.brand_name : "",
             make: product.make || "",
-            countryOfOrigin: product.countryOfOrigin || "",
-            manufaturingYearAndMonth: product.manufaturingYearAndMonth || "",
-            State: product.State || "",
+            countryOfOrigin: product.origin_country || "",
+            manufaturingYearAndMonth: product.manufaturing_year || "",
+            State: product.state || "",
             district: product.district || "",
             additional_fields: jsonparsefunc(product.additional_fields) || "",
             images: (product.product_images || []).map(img => ({
@@ -591,3 +591,135 @@ exports.delete_docs = async (req, res) => {
         return res.status(400).json({ message: "Error to Delete Product Document", reason: error.message });
     }
 }
+
+exports.change_image = async (req, res) => {
+
+    const image = req.files?.['image'];
+    const productCode = req.body.productCode;
+    const id = req.body.id;
+    const created_by_id = req.user_id;
+
+    if (!image || !productCode || !id) {
+        return res.status(400).json({ message: "Missing Mandatory Fields" });
+    }
+
+    try {
+        const check_productcode = await Products.findOne({
+            where: {
+                product_code: productCode,
+                is_active: true
+            }
+        });
+
+        if (!check_productcode) {
+            return res.status(400).json({ message: "Invalid or Inactive Product Code" });
+        }
+
+        const check_id = await ProductImages.findOne({
+            where: {
+                product_code: productCode,
+                is_active: true,
+                id: id
+            }
+        });
+
+        if (!check_id) {
+            return res.status(400).json({ message: "Invalid or Inactive Id" });
+        }
+
+        const image_count = await ProductImages.count({
+            where: {
+                product_code: productCode,
+                is_active: true
+            }
+        });
+
+        if (image_count >= 10) {
+            return res.status(400).json({ message: "Maximum 10 images are allowed for a product" });
+        }
+
+        const file = Array.isArray(image) ? image[0] : image;
+        const ext = path.extname(file.originalname);
+        const uniqueName = `product-${Date.now()}-${Math.floor(Math.random() * 10000)}${ext}`;
+        const s3Url = await uploadImage.uploadToS3('images/', uniqueName, file);
+
+        await ProductImages.update({
+            image_url: s3Url,
+            product_code: productCode,
+            created_by_id: created_by_id
+        }, {
+            where: { id }
+        });
+
+        return res.status(200).json({ message: "Image Added Successfully" });
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Add Product Images", reason: error.message });
+    }
+};
+
+exports.change_docs = async (req, res) => {
+
+    const docs = req.files?.['technicaldoc'];
+    const productCode = req.body.productCode;
+    const id = req.body.id;
+    const created_by_id = req.user_id;
+
+    if (!docs || !productCode || !id) {
+        return res.status(400).json({ message: "Missing Mandatory Fields" });
+    }
+
+    try {
+        const check_productcode = await Products.findOne({
+            where: {
+                product_code: productCode,
+                is_active: true
+            }
+        });
+
+        if (!check_productcode) {
+            return res.status(400).json({ message: "Invalid or Inactive Product Code" });
+        }
+
+        const check_id = await TechnicalDocuments.findOne({
+            where: {
+                product_code: productCode,
+                is_active: true,
+                id: id
+            }
+        });
+
+        if (!check_id) {
+            return res.status(400).json({ message: "Invalid or Inactive Id" });
+        }
+
+        const doc_count = await TechnicalDocuments.count({
+            where: {
+                product_code: productCode,
+                is_active: true
+            }
+        });
+
+        if (doc_count >= 10) {
+            return res.status(400).json({ message: "Maximum 10 Documents are allowed for a product" });
+        }
+
+        const file = Array.isArray(docs) ? docs[0] : docs;
+        const ext = path.extname(file.originalname);
+        const uniqueName = `product-${Date.now()}-${Math.floor(Math.random() * 10000)}${ext}`;
+        const docu_url = await uploadImage.uploadToS3('technical_documents/', uniqueName, file);
+
+        await TechnicalDocuments.update({
+            document_url: docu_url,
+            product_code: productCode,
+            created_by_id: created_by_id
+        }, {
+            where: { id }
+        });
+
+        return res.status(200).json({ message: "Document Added Successfully" });
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Add Document Images", reason: error.message });
+    }
+};
