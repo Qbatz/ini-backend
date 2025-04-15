@@ -19,32 +19,32 @@ exports.add_product = async (req, res) => {
     const imageFiles = req.files['images'];
     const technicaldocsFiles = req.files['technicaldocs'];
 
-    if (quantity) {
-        if (Array.isArray(serialNo) && serialNo.length > 0) {
-            return res.status(400).json({ message: "Missing Serial Number Details" });
-        }
+    try {
 
-        var serialNo = JSON.parse(serialNo);
+        if (quantity) {
+            if (Array.isArray(serialNo) && serialNo.length > 0) {
+                return res.status(400).json({ message: "Missing Serial Number Details" });
+            }
 
+            var serialNo = JSON.parse(serialNo);
 
-        if (serialNo.length != quantity) {
-            return res.status(400).json({ message: `Serial number count (${serialNo.length}) does not match quantity (${quantity})` });
-        }
-    }
-
-    let additionalFieldsParsed = [];
-
-    if (additional_fields) {
-        if (typeof additional_fields === 'string') {
-            try {
-                additionalFieldsParsed = JSON.parse(additional_fields);
-            } catch (err) {
-                return res.status(400).json({ message: "Invalid JSON in additional_fields" });
+            if (serialNo.length != quantity) {
+                return res.status(400).json({ message: `Serial number count (${serialNo.length}) does not match quantity (${quantity})` });
             }
         }
-    }
 
-    try {
+        let additionalFieldsParsed = [];
+
+        if (additional_fields) {
+            if (typeof additional_fields === 'string') {
+                try {
+                    additionalFieldsParsed = JSON.parse(additional_fields);
+                } catch (err) {
+                    return res.status(400).json({ message: "Invalid JSON in additional_fields" });
+                }
+            }
+        }
+
         var check_productcode = await Products.findOne({
             where: {
                 product_code: productCode
@@ -224,13 +224,15 @@ exports.get_all_products = async (req, res) => {
                     model: ProductImages,
                     as: 'product_images',
                     attributes: ["id", "image_url", "product_code"],
-                    where: { is_active: true }
+                    where: { is_active: true },
+                    required: false,
                 },
                 {
                     model: TechnicalDocuments,
                     as: 'product_documents',
                     attributes: ["id", "document_url", "product_code"],
-                    where: { is_active: true }
+                    where: { is_active: true },
+                    required: false,
                 }
             ],
             order: [['id', 'DESC'],
