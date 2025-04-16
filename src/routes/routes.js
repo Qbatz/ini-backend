@@ -68,5 +68,6 @@ router.post('/usr/client/addAddressInfo', customersroute.addAddressInfo);
 
 router.get('/common/master', mastersroute.master_details);
 
+router.get('/user/info', mastersroute.user_info);
 
 module.exports = router;

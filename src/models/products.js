@@ -70,6 +70,7 @@ const Products = sequelize.define('Products', {
     },
     manufacturing_year: {
         type: DataTypes.DATE,
+        allowNull: true
     },
     district: {
         type: DataTypes.STRING(50),
