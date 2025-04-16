@@ -73,7 +73,7 @@ exports.add_product = async (req, res) => {
             subcategory: subCategory || 0,
             make: make,
             origin_country: countryOfOrigin,
-            manufaturing_year: manufaturingYearAndMonth,
+            manufacturing_year: manufaturingYearAndMonth,
             district: district,
             state: State,
             additional_fields: additionalFieldsParsed,
@@ -308,7 +308,7 @@ exports.update_product = async (req, res) => {
             return res.status(400).json({ message: "Missing Serial Number Details" });
         }
 
-        if (serialNo.length !== quantity) {
+        if (serialNo.length != quantity) {
             return res.status(400).json({ message: `Serial number count (${serialNo.length}) does not match quantity (${quantity})` });
         }
     }
