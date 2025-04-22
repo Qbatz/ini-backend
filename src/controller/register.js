@@ -8,6 +8,9 @@ const { UserForgotPasswordOtp, UserMobileVerifyOtp } = require('../models/login'
 const { UserEmailVerify, AuthUser } = require('../models/users')
 const { UserCompany, UserProfile } = require('../models/register');
 const { Op, fn, col, where } = require("sequelize");
+const { Activity } = require('../models/activites');
+const activityid = require('../components/activityid');
+
 
 function hashPassword(password, salt = null, iterations = 260000, keyLength = 32) {
     if (!salt) {
@@ -162,6 +165,17 @@ exports.company_registration = async (req, res) => {
             { where: { id: emailRecord.id } }
         );
 
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT002",
+            user_id,
+            description: "User Registerd In",
+            created_by_id: user_id
+        });
+
+
         // Send email notification
         const new_url = process.env.SITE_URL;
         const htmlFilePath = path.join(__dirname, '../mail_templates', 'register_mail.html');
@@ -234,6 +248,16 @@ exports.login = async (req, res) => {
         // Generate token
         const token = generateToken(user);
 
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT001",
+            user_id: user.id,
+            description: "User Logged In",
+            created_by_id: user.id
+        });
+
         // Update last login time
         await user.update({ last_login: new Date() });
 
@@ -246,6 +270,7 @@ exports.login = async (req, res) => {
 
 
 exports.reset_password = async (req, res) => {
+
     var { password, password2, verify_code } = req.body;
 
     if (!password || !password2 || !verify_code) {
@@ -258,7 +283,7 @@ exports.reset_password = async (req, res) => {
 
     try {
         const otpEntry = await UserForgotPasswordOtp.findOne({
-            where: { otp: verify_code, is_active: 0 }
+            where: { otp: verify_code, is_active: 1 }
         });
 
         if (!otpEntry) {
@@ -271,6 +296,21 @@ exports.reset_password = async (req, res) => {
             { password: new_password },
             { where: { id: otpEntry.user_id } }
         );
+
+        await UserForgotPasswordOtp.update(
+            { is_active: 0 },
+            { where: { otp: verify_code } }
+        );
+
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT003",
+            user_id: otpEntry.user_id,
+            description: "User Password Has Been Reset",
+            created_by_id: otpEntry.user_id
+        });
 
         return res.status(200).json({ message: "Password Updated Successfully" });
 

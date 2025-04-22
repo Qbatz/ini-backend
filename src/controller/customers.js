@@ -3,6 +3,8 @@ const { AddressType } = require('../models/address');
 const { Op, fn, col, where } = require("sequelize");
 const { Title, CommonCountry } = require('../models/masters');
 const sequelize = require('../config/db');
+const { Activity } = require('../models/activites');
+const activityid = require('../components/activityid');
 
 exports.add_customersall = async (req, res) => {
 
@@ -148,6 +150,17 @@ exports.add_customersall = async (req, res) => {
             await customer_BankDetails.bulkCreate(bank_details);
         }
 
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT005",
+            user_id: created_by_id,
+            transaction_id: customerid,
+            description: 'New Client ' + contactPerson + ' added',
+            created_by_id: created_by_id
+        });
+
         return res.status(200).json({ message: "Client added successfully", clientId: customerid });
     } catch (error) {
         return res.status(400).json({ message: error.message });
@@ -170,18 +183,26 @@ exports.all_customers = async (req, res) => {
         };
 
         if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999); // set time to end of the day
+
             whereCondition.created_on = {
-                [Op.between]: [new Date(startDate), new Date(endDate)]
+                [Op.between]: [start, end]
             };
         } else if (startDate) {
+            const start = new Date(startDate);
             whereCondition.created_on = {
-                [Op.gte]: new Date(startDate) // Greater than or equal to startDate
+                [Op.gte]: start
             };
         } else if (endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
             whereCondition.created_on = {
-                [Op.lte]: new Date(endDate) // Less than or equal to endDate
+                [Op.lte]: end
             };
         }
+
 
         const customers = await Customer.findAll({
             where: whereCondition,
@@ -596,6 +617,17 @@ exports.updatecustomer = async (req, res) => {
             await customer_BankDetails.bulkCreate(bank_details);
         }
 
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT019",
+            user_id: updated_by_id,
+            transaction_id: clientId,
+            description: 'Update Client ' + contactPerson + ' Information',
+            created_by_id: updated_by_id
+        });
+
         return res.status(200).json({ message: "Customer updated successfully", clientId: clientId });
     } catch (error) {
         return res.status(400).json({ message: error.message });
@@ -605,6 +637,8 @@ exports.updatecustomer = async (req, res) => {
 exports.delete_customer = async (req, res) => {
 
     var customer_id = req.params.customer_id;
+
+    var user_id = req.user_id;
 
     if (!customer_id) {
         return res.status(400).json({ message: "Missing Client Details" })
@@ -621,6 +655,17 @@ exports.delete_customer = async (req, res) => {
                 },
                 { where: { customerid: customer_id } }
             );
+
+            const activity_id = await activityid.generateNextActivityId();
+
+            await Activity.create({
+                activity_id,
+                activity_type_id: "ACT006",
+                user_id: user_id,
+                transaction_id: customer_id,
+                description: 'Deleted client ' + check_customer.contact_person + ' Information',
+                created_by_id: user_id
+            });
 
             return res.status(200).json({ message: "Customer Deleted Successfully" })
 
@@ -714,6 +759,17 @@ exports.addBasicInfo = async (req, res) => {
                 await AdditionalCustomersContactInfo.bulkCreate(additionalContacts);
 
             }
+
+            const activity_id = await activityid.generateNextActivityId();
+
+            await Activity.create({
+                activity_id,
+                activity_type_id: "ACT005",
+                user_id: updated_by_id,
+                transaction_id: customerid,
+                description: 'Added new Client basic information for' + contactPerson + '',
+                created_by_id: updated_by_id
+            });
 
             return res.status(200).json({ message: "Client added successfully", clientId: customerid });
 
@@ -843,6 +899,17 @@ exports.addBankDetails = async (req, res) => {
             await customer_BankDetails.bulkCreate(bank_details);
         }
 
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT008",
+            user_id: updated_by_id,
+            transaction_id: clientId,
+            description: 'Added bank details for' + customer.contact_person + '',
+            created_by_id: updated_by_id
+        });
+
         return res.status(200).json({ message: "Bank Details added", clientId: clientId });
 
     } catch (error) {
@@ -901,6 +968,17 @@ exports.addAddressInfo = async (req, res) => {
             updated_by_id: updated_by_id
         }));
         await CustomerAddress.bulkCreate(addressDetails);
+
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT007",
+            user_id: updated_by_id,
+            transaction_id: clientId,
+            description: 'Added Address details for' + customer.contact_person + '',
+            created_by_id: updated_by_id
+        });
 
         return res.status(200).json({ message: "Addresses Added", clientId: clientId });
 

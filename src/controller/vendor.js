@@ -2,7 +2,8 @@ const { Vendor, AdditionalContactInfo } = require('../models/vendors')
 const { Address, AddressType, BankDetails } = require('../models/address')
 const { Op, fn, col, where } = require("sequelize");
 const { Title, CommonCountry } = require('../models/masters');
-
+const { Activity } = require('../models/activites');
+const activityid = require('../components/activityid');
 
 exports.basic_info = async (req, res) => {
 
@@ -237,6 +238,17 @@ exports.basic_info = async (req, res) => {
             //     }
             // }
 
+            const activity_id = await activityid.generateNextActivityId();
+
+            await Activity.create({
+                activity_id,
+                activity_type_id: "ACT009",
+                user_id: created_by_id,
+                transaction_id: vendor_id,
+                description: 'New Vendor ' + contactPersonName + ' added',
+                created_by_id: created_by_id
+            });
+
             return res.status(200).json({ message: req.body.vendor_id ? "Vendor updated successfully" : "Vendor created successfully", vendor_id: vendor_id });
 
         } else {
@@ -307,6 +319,17 @@ exports.addBasicInfo = async (req, res) => {
                 country_code: country_code || 1,
                 created_by_id: created_by_id,
                 updated_by_id: created_by_id
+            });
+
+            const activity_id = await activityid.generateNextActivityId();
+
+            await Activity.create({
+                activity_id,
+                activity_type_id: "ACT009",
+                user_id: created_by_id,
+                transaction_id: vendor_id,
+                description: 'New Vendor Basic Information for ' + contactPersonName + '',
+                created_by_id: created_by_id
             });
 
         } else {
@@ -423,6 +446,17 @@ exports.addBankDetails = async (req, res) => {
             await BankDetails.bulkCreate(bank_details);
         }
 
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT013",
+            user_id: created_by_id,
+            transaction_id: vendorId,
+            description: 'Added bank details for ' + verify_vendor_id.contact_person + '',
+            created_by_id: created_by_id
+        });
+
         return res.status(200).json({ message: "Bank Details Updated", vendorId: vendorId });
 
     } catch (error) {
@@ -483,6 +517,18 @@ exports.addAddressInfo = async (req, res) => {
 
             await Address.bulkCreate(addressDetails);
         }
+
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT012",
+            user_id: created_by_id,
+            transaction_id: vendorId,
+            description: 'Added address details for ' + verify_vendor_id.contact_person + '',
+            created_by_id: created_by_id
+
+        });
 
         return res.status(200).json({ message: "Address Details added", vendorId: vendorId })
 
@@ -637,6 +683,18 @@ exports.updatevendor_id = async (req, res) => {
 
             await BankDetails.bulkCreate(bank_details);
         }
+
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT019",
+            user_id: created_by_id,
+            transaction_id: vendor_id,
+            description: 'Update Vendor ' + contactPersonName + ' Informations',
+            created_by_id: created_by_id
+
+        });
 
         return res.status(200).json({ message: "Vendor updated successfully", vendor_id: vendor_id });
     } catch (error) {
@@ -918,6 +976,8 @@ exports.remove_vendor = async (req, res) => {
 
     var vendor_id = req.params.vendor_id;
 
+    var user_id = req.user_id;
+
     if (!vendor_id) {
         return res.status(400).json({ message: "Missing Vendor Details" })
     }
@@ -934,6 +994,17 @@ exports.remove_vendor = async (req, res) => {
                 },
                 { where: { vendorid: vendor_id } }
             );
+
+            const activity_id = await activityid.generateNextActivityId();
+
+            await Activity.create({
+                activity_id,
+                activity_type_id: "ACT010",
+                user_id: user_id,
+                transaction_id: vendor_id,
+                description: 'Deleted Vendor ' + check_vendorid.contact_person + ' Information',
+                created_by_id: user_id
+            });
 
             return res.status(200).json({ message: "Vendor Deleted Successfully" })
 
