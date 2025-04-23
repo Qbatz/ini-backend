@@ -714,7 +714,7 @@ exports.get_allvendors = async (req, res) => {
             created_by_id: createdById,
             is_active: true,
             contact_person: {
-                [Op.like]: `%${searchKeyword.toLowerCase()}%`
+                [Op.iLike]: `%${searchKeyword.toLowerCase()}%`
             }
         };
 

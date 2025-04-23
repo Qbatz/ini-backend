@@ -1,6 +1,7 @@
 const { Category, SubCategory, ProductBrand } = require('../models/category')
 const { Activity } = require('../models/activites');
 const activityid = require('../components/activityid');
+const { Op, fn, col, where } = require('sequelize');
 
 exports.add_category = async (req, res) => {
 
@@ -14,7 +15,16 @@ exports.add_category = async (req, res) => {
             return res.status(400).json({ message: "Missing Category Name" });
         }
 
-        var check_name = await Category.findOne({ where: { category_name: name, created_by_id: created_by_id, is_active: true } });
+        // var check_name = await Category.findOne({ where: { category_name: name, is_active: true } });
+
+        const check_name = await Category.findOne({
+            where: {
+                [Op.and]: [
+                    where(fn('LOWER', col('category_name')), name.toLowerCase()),
+                    { is_active: true }
+                ]
+            }
+        });
 
         if (check_name) {
             return res.status(400).json({ message: "Category Name Already Exists" });
@@ -66,7 +76,7 @@ exports.get_category = async (req, res) => {
 
         var get_all_category = await Category.findAll({
             attributes: [['category_code', 'id'], ['category_name', 'name']],
-            where: { created_by_id: created_by_id, is_active: true }
+            where: { is_active: true }
         })
 
         return res.status(200).json(get_all_category)
@@ -94,7 +104,17 @@ exports.add_subCategory = async (req, res) => {
             return res.status(400).json({ message: "Invalid Or Inactive Category Id" });
         }
 
-        var check_subname = await SubCategory.findOne({ where: { subcategory_name: name, category_code: catId, is_active: true } })
+        // var check_subname = await SubCategory.findOne({ where: { subcategory_name: name, category_code: catId, is_active: true } })
+
+        const check_subname = await SubCategory.findOne({
+            where: {
+                [Op.and]: [
+                    where(fn('LOWER', col('subcategory_name')), name.toLowerCase()),
+                    { category_code: catId },
+                    { is_active: true }
+                ]
+            }
+        });
 
         if (check_subname) {
             return res.status(400).json({ message: "SubCategory Name Already Exists" });
@@ -181,7 +201,16 @@ exports.add_brand = async (req, res) => {
             return res.status(400).json({ message: "Missing Brandஃஃ Name" });
         }
 
-        var check_name = await ProductBrand.findOne({ where: { brand_name: name, created_by_id: created_by_id, is_active: true } });
+        // var check_name = await ProductBrand.findOne({ where: { brand_name: name, is_active: true } });
+
+        const check_name = await ProductBrand.findOne({
+            where: {
+                [Op.and]: [
+                    where(fn('LOWER', col('brand_name')), name.toLowerCase()),
+                    { is_active: true }
+                ]
+            }
+        });
 
         if (check_name) {
             return res.status(400).json({ message: "Brand Name Already Exists" });
@@ -235,7 +264,7 @@ exports.get_brand = async (req, res) => {
 
         var get_all_brand = await ProductBrand.findAll({
             attributes: [['brand_code', 'id'], ['brand_name', 'name']],
-            where: { created_by_id: created_by_id, is_active: true }
+            where: { is_active: true },
         })
 
         return res.status(200).json(get_all_brand)

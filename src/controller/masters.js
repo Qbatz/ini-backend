@@ -1,5 +1,5 @@
 require('dotenv').config();
-const moment = require('moment');
+const moment = require('moment-timezone');
 const { Title, CommonCountry } = require('../models/masters');
 const { AuthUser } = require('../models/users');
 const { Activity, ActivityTypes } = require('../models/activites');
@@ -70,7 +70,7 @@ exports.activities = async (req, res) => {
         id: activity.id,
         type: activity.ActivityTypes.activity_name,
         description: activity.description,
-        datetime: moment(activity.created_on).format("DD/MM/YYYY hh:mm a"),
+        datetime: moment(activity.created_on).tz("Asia/Kolkata").format("DD/MM/YYYY hh:mm a"),
         transactionId: activity.transaction_id || ""
     }))
 

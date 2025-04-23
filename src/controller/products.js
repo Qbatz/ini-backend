@@ -8,11 +8,11 @@ const activityid = require('../components/activityid');
 
 exports.add_product = async (req, res) => {
 
-    var { productCode, productName, description, quantity, unit, price, currency, weight, discount, hsnCode, gst, serialNo, category, subCategory, make, countryOfOrigin, manufaturingYearAndMonth, State, district, additional_fields, brand } = req.body;
+    var { productCode, productName, description, quantity, unit, price, currency, weight, discount, hsnCode, gst, serialNo, category, subCategory, make, countryOfOrigin, manufaturingYearAndMonth, State, district, additional_fields, brand, categoryName, subCategoryName, brandName } = req.body;
 
     var created_by_id = req.user_id;
 
-    if (!productCode || !productName || !description || !unit || !category || !brand) {
+    if (!productCode || !productName || !description || !unit) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
@@ -57,6 +57,126 @@ exports.add_product = async (req, res) => {
             return res.status(400).json({ message: "Product Code Already Exists" })
         }
 
+        let finalCategoryId = category;
+        if (!finalCategoryId && categoryName) {
+            const existingCat = await Category.findOne({
+                where: {
+                    [Op.and]: [
+                        where(fn('LOWER', col('category_name')), categoryName.toLowerCase()),
+                        { is_active: true }
+                    ]
+                }
+            });
+
+            if (existingCat) {
+                finalCategoryId = String(existingCat.category_code);
+            } else {
+
+                let category_code;
+                let isUnique = false;
+
+                while (!isUnique) {
+                    const randomNumber = Math.floor(100000 + Math.random() * 900000);
+                    category_code = `${randomNumber}`;
+
+                    const existingCategoryCode = await Category.findOne({ where: { category_code: category_code } });
+
+                    if (!existingCategoryCode) {
+                        isUnique = true;
+                    }
+                }
+                const newCat = await Category.create({
+                    category_code: category_code,
+                    category_name: categoryName,
+                    created_by_id: created_by_id
+                });
+                finalCategoryId = String(newCat.category_code);
+            }
+
+        }
+
+        console.log("finalCategoryId", finalCategoryId);
+
+
+        let finalSubCategoryId = subCategory;
+        if (!finalSubCategoryId && subCategoryName) {
+            const existingSubCat = await SubCategory.findOne({
+                where: {
+                    [Op.and]: [
+                        where(fn('LOWER', col('subcategory_name')), subCategoryName.toLowerCase()),
+                        { category_code: finalCategoryId, is_active: true }
+                    ]
+                }
+            });
+
+            if (existingSubCat) {
+                finalSubCategoryId = String(existingSubCat.subcategory_code);
+            } else {
+
+                let subcategory_code;
+                let isUnique = false;
+
+                while (!isUnique) {
+                    const randomNumber = Math.floor(100000 + Math.random() * 900000);
+                    subcategory_code = `${randomNumber}`;
+
+                    const existingSubCategoryCode = await SubCategory.findOne({ where: { subcategory_code: subcategory_code } });
+
+                    if (!existingSubCategoryCode) {
+                        isUnique = true;
+                    }
+                }
+
+                const newSubCat = await SubCategory.create({
+                    subcategory_code: subcategory_code,
+                    subcategory_name: subCategoryName,
+                    category_code: finalCategoryId,
+                    created_by_id: created_by_id
+                });
+                finalSubCategoryId = String(newSubCat.subcategory_code);
+            }
+        }
+
+        let finalBrandId = brand;
+        if (!finalBrandId && brandName) {
+            const existingBrand = await ProductBrand.findOne({
+                where: {
+                    [Op.and]: [
+                        where(fn('LOWER', col('brand_name')), brandName.toLowerCase()),
+                        { is_active: true }
+                    ]
+                }
+            });
+
+            if (existingBrand) {
+                finalBrandId = String(existingBrand.brand_code);
+            } else {
+
+                let brand_code;
+                let isUnique = false;
+
+                while (!isUnique) {
+                    const randomNumber = Math.floor(100000 + Math.random() * 900000);
+                    brand_code = `${randomNumber}`;
+
+                    const existingBrandCode = await ProductBrand.findOne({ where: { brand_code: brand_code } });
+
+                    if (!existingBrandCode) {
+                        isUnique = true;
+                    }
+                }
+
+                const newBrand = await ProductBrand.create({
+                    brand_code: brand_code,
+                    brand_name: brandName,
+                    created_by_id: created_by_id,
+                    updated_by_id:created_by_id
+                });
+                finalBrandId = String(newBrand.brand_code);
+            }
+        }
+
+
         var check_productcode = await Products.create({
             product_code: productCode,
             product_name: productName,
@@ -70,9 +190,9 @@ exports.add_product = async (req, res) => {
             hsn_code: hsnCode,
             gst: gst || 0,
             serialNo: JSON.stringify(serialNo) || [],
-            category: category,
-            brand: brand,
-            subcategory: subCategory || 0,
+            category: finalCategoryId,
+            brand: finalBrandId,
+            subcategory: finalSubCategoryId || 0,
             make: make,
             origin_country: countryOfOrigin,
             manufacturing_year: manufaturingYearAndMonth || null,
@@ -119,8 +239,8 @@ exports.add_product = async (req, res) => {
         var find_product = await Inventory.findOne({
             where: {
                 product_code: productCode,
-                category_code: category,
-                subcategory_code: subCategory,
+                category_code: finalCategoryId,
+                subcategory_code: finalSubCategoryId,
                 is_active: true
             }
         })
@@ -159,8 +279,8 @@ exports.add_product = async (req, res) => {
             await Inventory.create({
                 inventory_code: inventory_code,
                 product_code: productCode,
-                category_code: category,
-                subcategory_code: subCategory || 0,
+                category_code: finalCategoryId,
+                subcategory_code: finalSubCategoryId || 0,
                 count: quantity || 0,
                 created_by_id: created_by_id
             });

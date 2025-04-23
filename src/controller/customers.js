@@ -178,7 +178,7 @@ exports.all_customers = async (req, res) => {
             created_by_id: createdById,
             is_active: true,
             contact_person: {
-                [Op.like]: `%${searchKeyword.toLowerCase()}%`
+                [Op.iLike]: `%${searchKeyword.toLowerCase()}%`
             }
         };
 
@@ -621,7 +621,7 @@ exports.updatecustomer = async (req, res) => {
 
         await Activity.create({
             activity_id,
-            activity_type_id: "ACT019",
+            activity_type_id: "ACT020",
             user_id: updated_by_id,
             transaction_id: clientId,
             description: 'Update Client ' + contactPerson + ' Information',
