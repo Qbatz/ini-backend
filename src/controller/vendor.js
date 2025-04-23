@@ -719,16 +719,23 @@ exports.get_allvendors = async (req, res) => {
         };
 
         if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999); // set time to end of the day
+
             whereCondition.created_on = {
-                [Op.between]: [new Date(startDate), new Date(endDate)]
+                [Op.between]: [start, end]
             };
         } else if (startDate) {
+            const start = new Date(startDate);
             whereCondition.created_on = {
-                [Op.gte]: new Date(startDate) // Greater than or equal to startDate
+                [Op.gte]: start
             };
         } else if (endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
             whereCondition.created_on = {
-                [Op.lte]: new Date(endDate) // Less than or equal to endDate
+                [Op.lte]: end
             };
         }
 

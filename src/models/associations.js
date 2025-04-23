@@ -6,6 +6,8 @@ const { Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, 
 const { Title, CommonCountry, } = require("./masters");
 const { Products, Unit, Inventory, ProductImages, TechnicalDocuments } = require("./products");
 const { Category, SubCategory, ProductBrand } = require("./category");
+const { Activity, ActivityTypes } = require("./activites");
+
 
 AuthUser.hasOne(UserCompany, { foreignKey: "user_id", sourceKey: "id" });
 UserCompany.belongsTo(AuthUser, { foreignKey: "user_id", targetKey: "id" });
@@ -97,5 +99,10 @@ Products.hasMany(ProductImages, { foreignKey: "product_code", sourceKey: "produc
 TechnicalDocuments.belongsTo(Products, { foreignKey: "product_code", targetKey: 'product_code', as: "product_documents", });
 
 Products.hasMany(TechnicalDocuments, { foreignKey: "product_code", sourceKey: "product_code", as: "product_documents", });
+
+Activity.belongsTo(ActivityTypes, { foreignKey: "activity_type_id", targetKey: "activity_type_id", as: "ActivityTypes" });
+
+ActivityTypes.hasMany(Activity, { foreignKey: "activity_type_id", sourceKey: "activity_type_id", as: "ActivityTypes" });
+
 
 module.exports = { Vendor, Address, BankDetails, AdditionalContactInfo, AuthUser, UserCompany, Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails, AddressType };

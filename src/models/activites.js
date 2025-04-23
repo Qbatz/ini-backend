@@ -153,6 +153,22 @@ const defaultActivityTypes = [
         activity_type_id: 'ACT020',
         activity_name: 'Update Client',
     },
+    {
+        activity_type_id: 'ACT021',
+        activity_name: 'Update Product',
+    },
+    {
+        activity_type_id: 'ACT022',
+        activity_name: 'Category',
+    },
+    {
+        activity_type_id: 'ACT023',
+        activity_name: 'Sub Category',
+    },
+    {
+        activity_type_id: 'ACT024',
+        activity_name: 'Brand',
+    }
 ];
 
 async function seedActivityTypes() {

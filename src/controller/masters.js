@@ -2,6 +2,8 @@ require('dotenv').config();
 const moment = require('moment');
 const { Title, CommonCountry } = require('../models/masters');
 const { AuthUser } = require('../models/users');
+const { Activity, ActivityTypes } = require('../models/activites');
+const { types } = require('pg');
 
 exports.master_details = async (req, res) => {
 
@@ -45,5 +47,33 @@ exports.user_info = async (req, res) => {
     } catch (error) {
         return res.status(400).json({ message: "Error to Get User Details", reason: error.message })
     }
+
+}
+
+exports.activities = async (req, res) => {
+
+    var user_id = req.user_id;
+
+    var activites = await Activity.findAll({
+        where: { is_active: true, user_id, user_id },
+        include: [
+            {
+                model: ActivityTypes,
+                as: "ActivityTypes",
+                attributes: ["activity_name"],
+            }
+        ],
+        order: [['id', 'DESC']]
+    });
+
+    var formatedactivites = activites.map(activity => ({
+        id: activity.id,
+        type: activity.ActivityTypes.activity_name,
+        description: activity.description,
+        datetime: moment(activity.created_on).format("DD/MM/YYYY hh:mm a"),
+        transactionId: activity.transaction_id || ""
+    }))
+
+    return res.status(200).json({ activites: formatedactivites })
 
 }

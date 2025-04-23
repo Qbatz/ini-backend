@@ -70,4 +70,6 @@ router.get('/common/master', mastersroute.master_details);
 
 router.get('/user/info', mastersroute.user_info);
 
+router.get('/user/activities', mastersroute.activities);
+
 module.exports = router;

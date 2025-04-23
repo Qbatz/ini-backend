@@ -3,6 +3,8 @@ const { Products, Unit, Inventory, ProductImages, TechnicalDocuments } = require
 const uploadImage = require('../utils/upload_image')
 const { Op, fn, col, where } = require("sequelize");
 const { Category, SubCategory, ProductBrand } = require('../models/category');
+const { Activity } = require('../models/activites');
+const activityid = require('../components/activityid');
 
 exports.add_product = async (req, res) => {
 
@@ -165,6 +167,17 @@ exports.add_product = async (req, res) => {
 
             console.log("Inventory added.");
         }
+
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT011",
+            user_id: created_by_id,
+            transaction_id: productCode,
+            description: 'Added product ' + productName,
+            created_by_id: created_by_id
+        });
 
         return res.status(200).json({ message: "Product Added Successfully" })
 
@@ -374,6 +387,17 @@ exports.update_product = async (req, res) => {
             console.log("Inventory updated.");
         }
 
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT021",
+            user_id: created_by_id,
+            transaction_id: productCode,
+            description: 'Updated Product ' + productName,
+            created_by_id: created_by_id
+        });
+
         return res.status(200).json({ message: "Product Updated Successfully" })
 
     } catch (error) {
@@ -384,6 +408,8 @@ exports.update_product = async (req, res) => {
 exports.delete_product = async (req, res) => {
 
     var { product_code } = req.body;
+
+    var created_by_id = req.user_id;
 
     if (!product_code) {
         return res.status(400).json({ message: "Missing Required Fields" });
@@ -412,6 +438,17 @@ exports.delete_product = async (req, res) => {
         }, {
             where: { product_code: product_code }
         })
+
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT014",
+            user_id: created_by_id,
+            transaction_id: product_code,
+            description: 'Delete Product ' + check_productcode.product_name,
+            created_by_id: created_by_id
+        });
 
         return res.status(200).json({ message: "Deleted Successfully" })
 

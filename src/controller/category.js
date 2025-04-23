@@ -1,4 +1,6 @@
 const { Category, SubCategory, ProductBrand } = require('../models/category')
+const { Activity } = require('../models/activites');
+const activityid = require('../components/activityid');
 
 exports.add_category = async (req, res) => {
 
@@ -37,6 +39,17 @@ exports.add_category = async (req, res) => {
             category_name: name,
             created_by_id: created_by_id
         })
+
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT022",
+            user_id: created_by_id,
+            transaction_id: category_code,
+            description: 'Added Category ' + name,
+            created_by_id: created_by_id
+        });
 
         return res.status(200).json({ message: "Added successfully" })
 
@@ -107,6 +120,17 @@ exports.add_subCategory = async (req, res) => {
             subcategory_name: name,
             created_by_id: created_by_id
         })
+
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT023",
+            user_id: created_by_id,
+            transaction_id: subcategory_code,
+            description: 'Added Sub Category ' + name,
+            created_by_id: created_by_id
+        });
 
         return res.status(200).json({ message: "Added successfully" })
     } catch (error) {
@@ -183,6 +207,17 @@ exports.add_brand = async (req, res) => {
             created_by_id: created_by_id,
             updated_by_id: 0
         })
+
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT024",
+            user_id: created_by_id,
+            transaction_id: brand_code,
+            description: 'Added New Brand ' + name,
+            created_by_id: created_by_id
+        });
 
         return res.status(200).json({ message: "Added successfully" })
 
