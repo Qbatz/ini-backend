@@ -170,7 +170,7 @@ exports.add_product = async (req, res) => {
                     brand_code: brand_code,
                     brand_name: brandName,
                     created_by_id: created_by_id,
-                    updated_by_id:created_by_id
+                    updated_by_id: created_by_id
                 });
                 finalBrandId = String(newBrand.brand_code);
             }
@@ -880,3 +880,93 @@ exports.change_docs = async (req, res) => {
         return res.status(400).json({ message: "Error to Add Document Images", reason: error.message });
     }
 };
+
+exports.get_singleproduct = async (req, res) => {
+
+    try {
+
+        const product_id = req.params.product_id;
+
+        if (!product_id) {
+            return res.status(400).json({ message: "Missing Product Id" });
+        }
+
+        const products = await Products.findAll({
+            where: { product_code: product_id },
+            include: [
+                {
+                    model: Category,
+                    as: 'product_category',
+                    attributes: ["category_name"],
+                }, {
+                    model: SubCategory,
+                    as: 'product_sub_category',
+                    attributes: ["subcategory_name"],
+                }, {
+                    model: ProductBrand,
+                    as: 'product_brand',
+                    attributes: ["brand_name"],
+                },
+                {
+                    model: ProductImages,
+                    as: 'product_images',
+                    attributes: ["id", "image_url", "product_code"],
+                    where: { is_active: true },
+                    required: false,
+                },
+                {
+                    model: TechnicalDocuments,
+                    as: 'product_documents',
+                    attributes: ["id", "document_url", "product_code"],
+                    where: { is_active: true },
+                    required: false,
+                }
+            ],
+            order: [['id', 'DESC'],
+            [{ model: ProductImages, as: 'product_images' }, 'id', 'ASC'],
+            [{ model: TechnicalDocuments, as: 'product_documents' }, 'id', 'ASC']]
+        });
+
+        const formattedProducts = products.map(product => ({
+            productCode: product.product_code,
+            productName: product.product_name,
+            description: product.description,
+            quantity: product.quantity,
+            unit: product.unit,
+            price: product.price,
+            currency: product.currency || "",
+            weight: product.weight || "",
+            discount: product.discount || "",
+            hsnCode: product.hsn_code || "",
+            gst: product.gst || "",
+            serialNo: jsonparsefunc(product.serialNo) || [],
+            categoryId: product.category || "",
+            categoryName: product.product_category ? product.product_category.category_name : "",
+            subCategoryId: product.subcategory || "",
+            subCategoryName: product.product_sub_category ? product.product_sub_category.subcategory_name : "",
+            brandId: product.brand || "",
+            brandName: product.product_brand ? product.product_brand.brand_name : "",
+            make: product.make || "",
+            countryOfOrigin: product.origin_country || "",
+            manufaturingYearAndMonth: product.manufacturing_year || "",
+            State: product.state || "",
+            district: product.district || "",
+            additional_fields: jsonparsefunc(product.additional_fields) || "",
+            images: (product.product_images || []).map(img => ({
+                id: img.id,
+                url: img.image_url || "",
+                product_code: img.product_code || ""
+            })),
+            technicaldocs: (product.product_documents || []).map(doc => ({
+                id: doc.id,
+                url: doc.document_url || "",
+                product_code: doc.product_code || ""
+            })),
+        }));
+
+        return res.json(formattedProducts[0] || {});
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Get Product Details", reason: error.message });
+    }
+}   

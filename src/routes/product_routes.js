@@ -3,7 +3,13 @@ const category_routes = require('../controller/category');
 const productsroutes = require('../controller/products');
 const router = express.Router();
 const multer = require('multer');
-const upload = multer();
+// const upload = multer();
+
+const upload = multer({
+    limits: {
+        fileSize: 25 * 1024 * 1024
+    }
+});
 
 router.post('/product/category', category_routes.add_category);
 
@@ -20,6 +26,8 @@ router.get('/product/brand', category_routes.get_brand);
 router.post('/product/product', upload.fields([{ name: 'images', maxCount: 10 }, { name: 'technicaldocs', maxCount: 10 }]), productsroutes.add_product);
 
 router.get('/product/product', productsroutes.get_all_products);
+
+router.get('/product/:product_id', productsroutes.get_singleproduct);
 
 router.patch('/product/product', productsroutes.update_product);
 

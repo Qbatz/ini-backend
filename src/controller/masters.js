@@ -55,7 +55,7 @@ exports.activities = async (req, res) => {
     var user_id = req.user_id;
 
     var activites = await Activity.findAll({
-        where: { is_active: true, user_id, user_id },
+        where: { is_active: true, user_id },
         include: [
             {
                 model: ActivityTypes,
@@ -66,14 +66,27 @@ exports.activities = async (req, res) => {
         order: [['id', 'DESC']]
     });
 
-    var formatedactivites = activites.map(activity => ({
-        id: activity.id,
-        type: activity.ActivityTypes.activity_name,
-        description: activity.description,
-        datetime: moment(activity.created_on).tz("Asia/Kolkata").format("DD/MM/YYYY hh:mm a"),
-        transactionId: activity.transaction_id || ""
-    }))
+    var formatedactivites = activites.map(activity => {
+        const type = activity.ActivityTypes.activity_name;
+        const description = activity.description.toLowerCase();
 
-    return res.status(200).json({ activites: formatedactivites })
+        let module = "";
+        if (description.includes("product")) module = "product";
+        else if (description.includes("vendor")) module = "vendor";
+        else if (description.includes("client") || description.includes("customer")) module = "client";
+        else if (description.includes("category")) module = "category";
+        else if (description.includes("sub category")) module = "subcategory";
+        else if (description.includes("brand")) module = "brand";
 
+        return {
+            id: activity.id,
+            type: type,
+            description: activity.description,
+            datetime: moment(activity.created_on).tz("Asia/Kolkata").format("DD/MM/YYYY hh:mm a"),
+            transactionId: activity.transaction_id || "",
+            module: module
+        };
+    });
+
+    return res.status(200).json({ activites: formatedactivites });
 }
