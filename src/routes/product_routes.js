@@ -29,7 +29,9 @@ router.get('/product/product', productsroutes.get_all_products);
 
 router.get('/product/:product_id', productsroutes.get_singleproduct);
 
-router.patch('/product/:product_id', productsroutes.update_product);
+router.patch('/product/product', productsroutes.update_product);
+
+router.patch('/product/:product_id', productsroutes.update_single_product);
 
 router.delete('/product/product', productsroutes.delete_product);
 

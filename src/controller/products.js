@@ -433,11 +433,11 @@ function jsonparsefunc(value, defaultValue = []) {
 
 exports.update_product = async (req, res) => {
 
-    var { productName, description, quantity, unit, price, currency, weight, discount, hsnCode, gst, serialNo, category, subCategory, make, countryOfOrigin, manufaturingYearAndMonth, State, district, additional_fields, brand } = req.body;
+    var { productCode, productName, description, quantity, unit, price, currency, weight, discount, hsnCode, gst, serialNo, category, subCategory, make, countryOfOrigin, manufaturingYearAndMonth, State, district, additional_fields, brand } = req.body;
 
     var created_by_id = req.user_id;
 
-    var productCode = req.params.product_id
+    // var productCode = req.params.product_id
 
     if (!productCode || !productName || !description || !unit || !category) {
         return res.status(400).json({ message: "Missing Required Fields" });
@@ -469,23 +469,23 @@ exports.update_product = async (req, res) => {
             product_name: productName,
             description: description,
             quantity: quantity || 0,
-            // unit: unit,
+            unit: unit,
             price: price || 0,
-            // currency: currency,
-            // weight: weight || 0,
+            currency: currency,
+            weight: weight || 0,
             discount: discount || 0,
             hsn_code: hsnCode,
-            // gst: gst || 0,
+            gst: gst || 0,
             serialNo: JSON.stringify(serialNo) || [],
-            // category: category,
-            // brand: brand,
-            // subcategory: subCategory || 0,
-            // make: make,
+            category: category,
+            brand: brand,
+            subcategory: subCategory || 0,
+            make: make,
             origin_country: countryOfOrigin,
             manufacturing_year: manufaturingYearAndMonth || null,
             district: district,
             state: State,
-            // additional_fields: additional_fields,
+            additional_fields: additional_fields,
         }, {
             where: { unique_product_code: productCode }
         })
@@ -545,7 +545,7 @@ exports.delete_product = async (req, res) => {
     try {
         var check_productcode = await Products.findOne({
             where: {
-                product_code: product_code,
+                unique_product_code: product_code,
                 is_active: true
             }
         })
@@ -978,4 +978,85 @@ exports.get_singleproduct = async (req, res) => {
     } catch (error) {
         return res.status(400).json({ message: "Error to Get Product Details", reason: error.message });
     }
-}   
+}
+
+exports.update_single_product = async (req, res) => {
+
+    var product_id = String(req.params.product_id);
+    var { field, value } = req.body;
+
+    var created_by_id = req.user_id;
+
+    if (!product_id || !field || !value) {
+        return res.status(400).json({ message: "Missing Required Fields" });
+    }
+
+    const allowedFields = ['product_name', 'description', 'quantity', 'price', 'discount', 'hsn_code', 'origin_country', 'state', 'manufacturing_year'];
+
+    if (!allowedFields.includes(field)) {
+        return res.status(400).json({ message: "Invalid field to update" });
+    }
+
+    try {
+
+        var check_productcode = await Products.findOne({
+            where: {
+                unique_product_code: product_id,
+            }
+        })
+
+        if (!check_productcode) {
+            return res.status(400).json({ message: "Invalid Product Code" })
+        }
+
+        const updated = await Products.update(
+            { [field]: value },
+            {
+                where: {
+                    unique_product_code: product_id
+                }
+            }
+        );
+
+        if (field == 'quantity') {
+
+            var find_product = await Inventory.findOne({
+                where: {
+                    product_code: String(product_id),
+                    is_active: true
+                }
+            })
+
+            if (find_product) {
+
+                await Inventory.update(
+                    { count: value || 0 },
+                    {
+                        where: {
+                            id: find_product.id
+                        }
+                    }
+                );
+                console.log("Inventory updated.");
+            }
+
+        }
+        
+        const activity_id = await activityid.generateNextActivityId();
+
+        await Activity.create({
+            activity_id,
+            activity_type_id: "ACT021",
+            user_id: created_by_id,
+            transaction_id: product_id,
+            description: 'Updated Product ' + check_productcode.product_name + ' ' + field,
+            created_by_id: created_by_id
+        });
+
+        return res.status(200).json({ message: "Updated successfully" });
+
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to Update Product Details", reason: error.message });
+    }
+}
