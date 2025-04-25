@@ -8,7 +8,7 @@ const activityid = require('../components/activityid');
 
 exports.add_product = async (req, res) => {
 
-    var { productCode, productName, description, quantity, unit, price, currency, weight, discount, hsnCode, gst, serialNo, category, subCategory, make, countryOfOrigin, manufaturingYearAndMonth, State, district, additional_fields, brand, categoryName, subCategoryName, brandName } = req.body;
+    var { productCode, productName, description, quantity, unit, price, currency, weight, discount, hsnCode, gst, serialNo, category, subCategory, make, countryOfOrigin, manufaturingYearAndMonth, State, district, additional_fields, brand, categoryName, subCategoryName, brandName, model } = req.body;
 
     var created_by_id = req.user_id;
 
@@ -176,9 +176,12 @@ exports.add_product = async (req, res) => {
             }
         }
 
+        var unique_product_code = await activityid.generateNextProductId();
 
         var check_productcode = await Products.create({
             product_code: productCode,
+            unique_product_code: unique_product_code,
+            model: model || "",
             product_name: productName,
             description: description,
             quantity: quantity || 0,
@@ -238,7 +241,7 @@ exports.add_product = async (req, res) => {
 
         var find_product = await Inventory.findOne({
             where: {
-                product_code: productCode,
+                product_code: unique_product_code,
                 category_code: finalCategoryId,
                 subcategory_code: finalSubCategoryId,
                 is_active: true
@@ -278,7 +281,7 @@ exports.add_product = async (req, res) => {
 
             await Inventory.create({
                 inventory_code: inventory_code,
-                product_code: productCode,
+                product_code: unique_product_code,
                 category_code: finalCategoryId,
                 subcategory_code: finalSubCategoryId || 0,
                 count: quantity || 0,
@@ -294,7 +297,7 @@ exports.add_product = async (req, res) => {
             activity_id,
             activity_type_id: "ACT011",
             user_id: created_by_id,
-            transaction_id: productCode,
+            transaction_id: unique_product_code,
             description: 'Added product ' + productName,
             created_by_id: created_by_id
         });
@@ -375,7 +378,9 @@ exports.get_all_products = async (req, res) => {
 
         const formattedProducts = products.map(product => ({
             productCode: product.product_code,
+            uniqueProductCode: product.unique_product_code,
             productName: product.product_name,
+            model: product.model,
             description: product.description,
             quantity: product.quantity,
             unit: product.unit,
@@ -428,28 +433,30 @@ function jsonparsefunc(value, defaultValue = []) {
 
 exports.update_product = async (req, res) => {
 
-    var { productCode, productName, description, quantity, unit, price, currency, weight, discount, hsnCode, gst, serialNo, category, subCategory, make, countryOfOrigin, manufaturingYearAndMonth, State, district, additional_fields, brand } = req.body;
+    var { productName, description, quantity, unit, price, currency, weight, discount, hsnCode, gst, serialNo, category, subCategory, make, countryOfOrigin, manufaturingYearAndMonth, State, district, additional_fields, brand } = req.body;
 
     var created_by_id = req.user_id;
+
+    var productCode = req.params.product_id
 
     if (!productCode || !productName || !description || !unit || !category) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
-    if (quantity) {
-        if (!Array.isArray(serialNo) || serialNo.length === 0) {
-            return res.status(400).json({ message: "Missing Serial Number Details" });
-        }
+    // if (quantity) {
+    //     if (!Array.isArray(serialNo) || serialNo.length === 0) {
+    //         return res.status(400).json({ message: "Missing Serial Number Details" });
+    //     }
 
-        if (serialNo.length != quantity) {
-            return res.status(400).json({ message: `Serial number count (${serialNo.length}) does not match quantity (${quantity})` });
-        }
-    }
+    //     if (serialNo.length != quantity) {
+    //         return res.status(400).json({ message: `Serial number count (${serialNo.length}) does not match quantity (${quantity})` });
+    //     }
+    // }
 
     try {
         var check_productcode = await Products.findOne({
             where: {
-                product_code: productCode,
+                unique_product_code: productCode,
                 is_active: true
             }
         })
@@ -462,25 +469,25 @@ exports.update_product = async (req, res) => {
             product_name: productName,
             description: description,
             quantity: quantity || 0,
-            unit: unit,
+            // unit: unit,
             price: price || 0,
-            currency: currency,
-            weight: weight || 0,
+            // currency: currency,
+            // weight: weight || 0,
             discount: discount || 0,
             hsn_code: hsnCode,
-            gst: gst || 0,
+            // gst: gst || 0,
             serialNo: JSON.stringify(serialNo) || [],
-            category: category,
-            brand: brand,
-            subcategory: subCategory || 0,
-            make: make,
+            // category: category,
+            // brand: brand,
+            // subcategory: subCategory || 0,
+            // make: make,
             origin_country: countryOfOrigin,
             manufacturing_year: manufaturingYearAndMonth || null,
             district: district,
             state: State,
-            additional_fields: additional_fields,
+            // additional_fields: additional_fields,
         }, {
-            where: { product_code: productCode }
+            where: { unique_product_code: productCode }
         })
 
         var find_product = await Inventory.findOne({
@@ -892,7 +899,7 @@ exports.get_singleproduct = async (req, res) => {
         }
 
         const products = await Products.findAll({
-            where: { product_code: product_id },
+            where: { unique_product_code: product_id },
             include: [
                 {
                     model: Category,
@@ -929,6 +936,8 @@ exports.get_singleproduct = async (req, res) => {
 
         const formattedProducts = products.map(product => ({
             productCode: product.product_code,
+            productName: product.product_name,
+            uniqueProductCode: product.unique_product_code,
             productName: product.product_name,
             description: product.description,
             quantity: product.quantity,

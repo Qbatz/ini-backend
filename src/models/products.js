@@ -7,6 +7,11 @@ const Products = sequelize.define('Products', {
         autoIncrement: true,
         primaryKey: true
     },
+    unique_product_code: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+        unique: true
+    },
     product_code: {
         type: DataTypes.STRING(50),
         allowNull: false,
@@ -29,6 +34,10 @@ const Products = sequelize.define('Products', {
         defaultValue: 1
     },
     unit: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+    },
+    model: {
         type: DataTypes.STRING(50),
         allowNull: true,
     },
