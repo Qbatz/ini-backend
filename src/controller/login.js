@@ -295,7 +295,8 @@ exports.reset_password_validcheck = async (req, res) => {
 };
 
 exports.reg_send_otp = async (req, res) => {
-    var { mobile } = req.body;
+
+    var { mobile, email } = req.body;
 
     if (!mobile) {
         return res.status(400).json({ message: "Missing Mobile Number" });
@@ -312,6 +313,23 @@ exports.reg_send_otp = async (req, res) => {
             updated_on: new Date(),
             failed_attempt: 0
         });
+
+        if (email) {
+
+            const otp = generateOtp();
+            const htmlFilePath = path.join(__dirname, '../mail_templates', 'mob_otp.html');
+            let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
+            htmlContent = htmlContent.replace('{{otp}}', otp)
+
+            await transport.sendMail({
+                from: '"MyApp Support" <no-reply@myapp.com>',
+                to: email,
+                subject: "OTP Mail for Mobile Verification",
+                html: htmlContent,
+            });
+
+            console.log("OTP email sent successfully.");
+        }
 
         return res.status(200).json({ message: "OTP sent successfully!", otp: otp });
 
