@@ -40,6 +40,8 @@ router.post('/usr/vendor/addAddressInfo', vendorroute.addAddressInfo);
 
 router.patch('/usr/vendor/:vendor_id', vendorroute.updatevendor_id);
 
+router.post('/usr/vendor/edit', vendorroute.edit_single_field);
+
 router.get('/usr/vendor', vendorroute.get_allvendors);
 
 router.get('/usr/vendor/:vendor_id', vendorroute.particularvendor_details);

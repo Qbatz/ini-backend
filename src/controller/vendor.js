@@ -744,7 +744,7 @@ exports.get_allvendors = async (req, res) => {
             include: [
                 {
                     model: Address,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"],
+                    attributes: ["id", "address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"],
                     include: [
                         {
                             model: AddressType,
@@ -755,12 +755,12 @@ exports.get_allvendors = async (req, res) => {
                 },
                 {
                     model: BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary", "intermediary_swift_code", "iban"],
+                    attributes: ["id", "name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary", "intermediary_swift_code", "iban"],
                     order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalContactInfo,
-                    attributes: ["name", "number", "email", "designation", "country", "title", "country_code"],
+                    attributes: ["id", "name", "number", "email", "designation", "country", "title", "country_code"],
                     include: [
                         {
                             model: Title,
@@ -803,6 +803,7 @@ exports.get_allvendors = async (req, res) => {
             country_code_id: vendor.country_code || "",
             country_code: vendor.vendor_countrycode ? vendor.vendor_countrycode.phone : "",
             address: (vendor.addresses || []).map(addr => ({
+                id: addr.id,
                 doorNo: addr.address_line1,
                 street: addr.address_line2 || "",
                 locality: addr.address_line3 || "",
@@ -816,6 +817,7 @@ exports.get_allvendors = async (req, res) => {
                 addressType: addr.VendorAddressType ? addr.VendorAddressType.type : "",
             })),
             bankDetails: (vendor.bank_details || []).map(bank => ({
+                id: bank.id,
                 name: bank.name || ' ',
                 accountNo: bank.account_number,
                 bankName: bank.bank_name,
@@ -834,6 +836,7 @@ exports.get_allvendors = async (req, res) => {
                 intermediary_swift_code: bank.intermediary_swift_code || ""
             })),
             additionalContactInfo: (vendor.additional_contact_infos || []).map(contact => ({
+                id: contact.id,
                 name: contact.name,
                 contactNumber: contact.number,
                 contactEmail: contact.email,
@@ -868,7 +871,7 @@ exports.particularvendor_details = async (req, res) => {
             include: [
                 {
                     model: Address,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"],
+                    attributes: ["id", "address_line1", "address_line2", "address_line3", "address_line4", "postal_code", "landmark", "maplink", "address_type", "city", "state", "country"],
                     include: [
                         {
                             model: AddressType,
@@ -879,12 +882,12 @@ exports.particularvendor_details = async (req, res) => {
                 },
                 {
                     model: BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary", "intermediary_swift_code", "iban"],
+                    attributes: ["id", "name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "currency", "isPrimary", "intermediary_swift_code", "iban"],
                     order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalContactInfo,
-                    attributes: ["name", "number", "email", "designation", "country", "title", "country_code"],
+                    attributes: ["id", "name", "number", "email", "designation", "country", "title", "country_code"],
                     include: [
                         {
                             model: Title,
@@ -927,6 +930,7 @@ exports.particularvendor_details = async (req, res) => {
             country_code_id: vendor.country_code || "",
             country_code: vendor.vendor_countrycode ? vendor.vendor_countrycode.phone : "",
             address: (vendor.addresses || []).map(addr => ({
+                id: addr.id,
                 doorNo: addr.address_line1,
                 street: addr.address_line2 || "",
                 locality: addr.address_line3 || "",
@@ -940,6 +944,7 @@ exports.particularvendor_details = async (req, res) => {
                 addressType: addr.VendorAddressType ? addr.VendorAddressType.type : "",
             })),
             bankDetails: (vendor.bank_details || []).map(bank => ({
+                id: bank.id,
                 name: bank.name || ' ',
                 accountNo: bank.account_number,
                 bankName: bank.bank_name,
@@ -958,6 +963,7 @@ exports.particularvendor_details = async (req, res) => {
                 intermediary_swift_code: bank.intermediary_swift_code || ""
             })),
             additionalContactInfo: (vendor.additional_contact_infos || []).map(contact => ({
+                id: contact.id,
                 name: contact.name,
                 contactNumber: contact.number,
                 contactEmail: contact.email,
@@ -1020,5 +1026,59 @@ exports.remove_vendor = async (req, res) => {
         }
     } catch (error) {
         return res.status(400).json({ message: error.message })
+    }
+}
+
+exports.edit_single_field = async (req, res) => {
+
+    var { vendorUniqueId, field, value, id } = req.body;
+
+    console.log(req.body)
+
+    if (!vendorUniqueId || !field || !value) {
+        return res.status(400).json({ message: "Missing Mandatory Fields1" });
+    }
+
+    // const allowedFields = ['address_line1', 'address_line2', 'postal_code', 'city', 'landmark', 'maplink', 'name', 'account_number', 'country', 'swift_code', 'routing_bank', 'ifsc_code'];
+
+    // if (!allowedFields.includes(field)) {
+    //     return res.status(400).json({ message: "Invalid field to update" });
+    // }
+
+    try {
+
+        const vendorFields = ['address_line1', 'address_line2', 'postal_code', 'city', 'landmark', 'maplink', 'name'];
+        const bankFields = ['account_number', 'country', 'swift_code', 'routing_bank', 'ifsc_code'];
+
+        if (![...vendorFields, ...bankFields].includes(field)) {
+            return res.status(400).json({ message: "Invalid field to update" });
+        }
+
+        var check_vendor = await Vendor.findOne({
+            where: {
+                vendorid: vendorUniqueId,
+            }
+        })
+
+        if (!check_vendor) {
+            return res.status(400).json({ message: "Invalid Vendor Details" })
+        }
+
+        if (vendorFields.includes(field)) {
+            await Address.update(
+                { [field]: value },
+                { where: { user_id: vendorUniqueId, id } }
+            );
+        } else if (bankFields.includes(field)) {
+            await BankDetails.update(
+                { [field]: value },
+                { where: { user_id: vendorUniqueId, id } }
+            );
+        }
+
+        return res.status(200).json({ message: "Updated Successfully" })
+
+    } catch (error) {
+        return res.status(400).json({ message: "Error to update", reason: error.message });
     }
 }

@@ -99,6 +99,9 @@ exports.add_product = async (req, res) => {
 
 
         let finalSubCategoryId = subCategory;
+
+        console.log(!finalSubCategoryId && subCategoryName);
+
         if (!finalSubCategoryId && subCategoryName) {
             const existingSubCat = await SubCategory.findOne({
                 where: {
@@ -178,6 +181,8 @@ exports.add_product = async (req, res) => {
 
         var unique_product_code = await activityid.generateNextProductId();
 
+        console.log("finalSubCategoryId", finalSubCategoryId);
+
         var check_productcode = await Products.create({
             product_code: productCode,
             unique_product_code: unique_product_code,
@@ -195,7 +200,7 @@ exports.add_product = async (req, res) => {
             serialNo: JSON.stringify(serialNo) || [],
             category: finalCategoryId,
             brand: finalBrandId,
-            subcategory: finalSubCategoryId || 0,
+            subcategory: finalSubCategoryId || null,
             make: make,
             origin_country: countryOfOrigin,
             manufacturing_year: manufaturingYearAndMonth || null,
@@ -239,6 +244,8 @@ exports.add_product = async (req, res) => {
             }
         }
 
+        console.log("3333333333333333");
+
         var find_product = await Inventory.findOne({
             where: {
                 product_code: unique_product_code,
@@ -247,6 +254,8 @@ exports.add_product = async (req, res) => {
                 is_active: true
             }
         })
+
+        console.log(find_product);
 
         if (find_product) {
 
@@ -305,7 +314,7 @@ exports.add_product = async (req, res) => {
         return res.status(200).json({ message: "Product Added Successfully" })
 
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         return res.status(400).json({ message: "Error to Add Product Details", reason: error.message });
     }
 }
@@ -1041,7 +1050,7 @@ exports.update_single_product = async (req, res) => {
             }
 
         }
-        
+
         const activity_id = await activityid.generateNextActivityId();
 
         await Activity.create({
