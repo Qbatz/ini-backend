@@ -282,10 +282,10 @@ exports.reset_password_validcheck = async (req, res) => {
         }
 
         // Update OTP status
-        await UserForgotPasswordOtp.update(
-            { is_active: 0 },
-            { where: { id: otpRecord.id } }
-        );
+        // await UserForgotPasswordOtp.update(
+        //     { is_active: 0 },
+        //     { where: { id: otpRecord.id } }
+        // );
 
         return res.status(200).json({ message: "Token Verified" });
 
