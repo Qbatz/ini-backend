@@ -566,7 +566,7 @@ exports.delete_product = async (req, res) => {
         await Products.update({
             is_active: false
         }, {
-            where: { product_code: product_code }
+            where: { unique_product_code: product_code }
         })
 
         await Inventory.update({
