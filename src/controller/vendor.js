@@ -35,7 +35,7 @@ exports.basic_info = async (req, res) => {
 
     if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
         for (let contact of additionalContactInfo) {
-            if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation || !contact.title || !contact.country_code) {
+            if (!contact.name || !contact.contactNumber || !contact.designation || !contact.title || !contact.country_code) {
                 return res.status(400).json({ message: "Missing Required Fields in Additional Contacts" });
             }
         }
@@ -71,14 +71,30 @@ exports.basic_info = async (req, res) => {
 
             if (!vendor_id) {
 
-                const email_verify = await Vendor.findOne({ where: { email } });
+                // const email_verify = await Vendor.findOne({ where: { email } });
 
-                if (email_verify) {
-                    return res.status(400).json({ message: "Email Already registered with us" });
+                // if (email_verify) {
+                //     return res.status(400).json({ message: "Email Already registered with us" });
+                // }
+
+                // const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
+                // var vendor_id = `VEN-${randomNumber}`;
+
+                let uniqueVendorId;
+                let isUnique = false;
+
+                while (!isUnique) {
+                    const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
+                    uniqueVendorId = `VEN-${randomNumber}`;
+
+                    const existingVendor = await Vendor.findOne({ where: { vendorid: uniqueVendorId } });
+
+                    if (!existingVendor) {
+                        isUnique = true;
+                    }
                 }
 
-                const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
-                var vendor_id = `VEN-${randomNumber}`;
+                vendor_id = uniqueVendorId;
 
                 var new_vendor = await Vendor.create({
                     business_name: businessName,
@@ -128,7 +144,7 @@ exports.basic_info = async (req, res) => {
                     vendorid: vendor_id,
                     name: contact.name,
                     number: contact.contactNumber,
-                    email: contact.contactEmail,
+                    email: contact.contactEmail || "",
                     designation: contact.designation,
                     country: contact.country || 'IN',
                     title: contact.title || 1,
@@ -275,7 +291,7 @@ exports.addBasicInfo = async (req, res) => {
         if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
 
             for (let contact of additionalContactInfo) {
-                if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation || !contact.title || !contact.country_code) {
+                if (!contact.name || !contact.contactNumber || !contact.designation || !contact.title || !contact.country_code) {
                     return res.status(400).json({ message: "Missing Required Fields in Additional Contacts" });
                 }
             }
@@ -283,11 +299,11 @@ exports.addBasicInfo = async (req, res) => {
 
         if (!vendor_id) {
 
-            const email_verify = await Vendor.findOne({ where: { email: emailId } });
+            // const email_verify = await Vendor.findOne({ where: { email: emailId } });
 
-            if (email_verify) {
-                return res.status(400).json({ message: "Email Already registered with us" });
-            }
+            // if (email_verify) {
+            //     return res.status(400).json({ message: "Email Already registered with us" });
+            // }
 
             let uniqueVendorId;
             let isUnique = false;
@@ -301,7 +317,7 @@ exports.addBasicInfo = async (req, res) => {
 
                 if (!existingVendor) {
                     isUnique = true;
-                }
+                }           
             }
 
             vendor_id = uniqueVendorId;
@@ -556,7 +572,7 @@ exports.updatevendor_id = async (req, res) => {
     if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
 
         for (let contact of additionalContactInfo) {
-            if (!contact.name || !contact.contactNumber || !contact.contactEmail || !contact.designation || !contact.title || !contact.country_code) {
+            if (!contact.name || !contact.contactNumber || !contact.designation || !contact.title || !contact.country_code) {
                 return res.status(400).json({ message: "Missing Required Fields in Additional Contacts" });
             }
         }
@@ -586,16 +602,16 @@ exports.updatevendor_id = async (req, res) => {
             return res.status(400).json({ message: "Invalid Vendor ID" });
         }
 
-        const verify_customer = await Vendor.findOne({
-            where: {
-                email: emailId,
-                vendorid: { [Op.ne]: vendor_id }
-            }
-        });
+        // const verify_customer = await Vendor.findOne({
+        //     where: {
+        //         email: emailId,
+        //         vendorid: { [Op.ne]: vendor_id }
+        //     }
+        // });
 
-        if (verify_customer) {
-            return res.status(400).json({ message: "Mail Id Already Registered Us" });
-        }
+        // if (verify_customer) {
+        //     return res.status(400).json({ message: "Mail Id Already Registered Us" });
+        // }
 
         await Vendor.update(
             {

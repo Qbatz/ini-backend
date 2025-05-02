@@ -23,7 +23,7 @@ const Vendor = sequelize.define("vendor", {
     email: {
         type: DataTypes.STRING(70),
         allowNull: false,
-        unique: true
+        // unique: true
     },
     designation: {
         type: DataTypes.STRING(100),
@@ -93,7 +93,7 @@ const AdditionalContactInfo = sequelize.define("additional_contact_info", {
     },
     email: {
         type: DataTypes.STRING(70),
-        allowNull: false,
+        allowNull: true,
     },
     designation: {
         type: DataTypes.STRING(100),
