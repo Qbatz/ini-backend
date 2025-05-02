@@ -220,8 +220,8 @@ exports.add_product = async (req, res) => {
                 await ProductImages.create({
                     image_url: s3Url,
                     product_code: productCode,
-                    category_code: category,
-                    subcategory_code: subCategory || 0,
+                    category_code: finalCategoryId,
+                    subcategory_code: finalSubCategoryId || 0,
                     created_by_id: created_by_id
                 });
             }
@@ -237,14 +237,12 @@ exports.add_product = async (req, res) => {
                 await TechnicalDocuments.create({
                     document_url: docu_url,
                     product_code: productCode,
-                    category_code: category,
-                    subcategory_code: subCategory || 0,
+                    category_code: finalCategoryId,
+                    subcategory_code: finalSubCategoryId || 0,
                     created_by_id: created_by_id
                 });
             }
         }
-
-        console.log("3333333333333333");
 
         var find_product = await Inventory.findOne({
             where: {

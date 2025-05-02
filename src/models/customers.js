@@ -23,7 +23,7 @@ const Customer = sequelize.define("customers", {
     email: {
         type: DataTypes.STRING(70),
         allowNull: false,
-        unique: true
+        // unique: true
     },
     designation: {
         type: DataTypes.STRING(100),
@@ -192,7 +192,7 @@ const AdditionalCustomersContactInfo = sequelize.define("additional_customers_co
     },
     email: {
         type: DataTypes.STRING(70),
-        allowNull: false,
+        allowNull: true,
     },
     designation: {
         type: DataTypes.STRING(100),

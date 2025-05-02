@@ -34,18 +34,18 @@ exports.add_customersall = async (req, res) => {
     if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
 
         for (let adds_detail of additionalContactInfo) {
-            if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
+            if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.designation) {
                 return res.status(400).json({ message: "Missing Required Fields in Additional Contact Info" });
             }
         }
     }
 
     try {
-        const verify_customer = await Customer.findOne({ where: { email: emailId } });
+        // const verify_customer = await Customer.findOne({ where: { email: emailId } });
 
-        if (verify_customer) {
-            return res.status(400).json({ message: "Mail Id Already Registered Us" });
-        }
+        // if (verify_customer) {
+        //     return res.status(400).json({ message: "Mail Id Already Registered Us" });
+        // }
 
         let customerid;
         let isUnique = false;
@@ -54,7 +54,7 @@ exports.add_customersall = async (req, res) => {
             const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
             customerid = `CUS-${randomNumber}`;
 
-            const existingCustomer = await Customer.findOne({ where: { email: emailId } });
+            const existingCustomer = await Customer.findOne({ where: { customerid: customerid } });
 
             if (!existingCustomer) {
                 isUnique = true;
@@ -163,6 +163,7 @@ exports.add_customersall = async (req, res) => {
 
         return res.status(200).json({ message: "Client added successfully", clientId: customerid });
     } catch (error) {
+        console.log(error);
         return res.status(400).json({ message: error.message });
     }
 }
@@ -510,7 +511,7 @@ exports.updatecustomer = async (req, res) => {
 
         if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
             for (let adds_detail of additionalContactInfo) {
-                if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
+                if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.designation) {
                     return res.status(400).json({ message: "Missing Required Fields in Additional Contact Info" });
                 }
             }
@@ -522,16 +523,16 @@ exports.updatecustomer = async (req, res) => {
             return res.status(404).json({ message: "Customer not found" });
         }
 
-        const verify_customer = await Customer.findOne({
-            where: {
-                email: emailId,
-                customerid: { [Op.ne]: clientId }
-            }
-        });
+        // const verify_customer = await Customer.findOne({
+        //     where: {
+        //         email: emailId,
+        //         customerid: { [Op.ne]: clientId }
+        //     }
+        // });
 
-        if (verify_customer) {
-            return res.status(400).json({ message: "Mail Id Already Registered Us" });
-        }
+        // if (verify_customer) {
+        //     return res.status(400).json({ message: "Mail Id Already Registered Us" });
+        // }
 
         await customer.update({
             business_name: businessName,
@@ -689,7 +690,7 @@ exports.addBasicInfo = async (req, res) => {
     if (Array.isArray(additionalContactInfo) && additionalContactInfo.length > 0) {
 
         for (let adds_detail of additionalContactInfo) {
-            if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.contactEmail || !adds_detail.designation) {
+            if (!adds_detail.title || !adds_detail.name || !adds_detail.contactNumber || !adds_detail.designation) {
                 return res.status(400).json({ message: "Missing Required Fields in Additional Contact Info" });
             }
         }
@@ -700,11 +701,11 @@ exports.addBasicInfo = async (req, res) => {
     try {
         if (!customer_id) {
 
-            const verify_customer = await Customer.findOne({ where: { email: emailId } });
+            // const verify_customer = await Customer.findOne({ where: { email: emailId } });
 
-            if (verify_customer) {
-                return res.status(400).json({ message: "Mail Id Already Registered Us" });
-            }
+            // if (verify_customer) {
+            //     return res.status(400).json({ message: "Mail Id Already Registered Us" });
+            // }
 
             let customerid;
             let isUnique = false;
@@ -713,7 +714,7 @@ exports.addBasicInfo = async (req, res) => {
                 const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
                 customerid = `CUS-${randomNumber}`;
 
-                const existingCustomer = await Customer.findOne({ where: { email: emailId } });
+                const existingCustomer = await Customer.findOne({ where: { customerid: customerid } });
 
                 if (!existingCustomer) {
                     isUnique = true;
@@ -749,7 +750,7 @@ exports.addBasicInfo = async (req, res) => {
                     name: contact.name,
                     title: contact.title,
                     number: contact.contactNumber,
-                    email: contact.contactEmail,
+                    email: contact.contactEmail || "",
                     designation: contact.designation,
                     country: contact.country || 'IN',
                     country_code: contact.country_code || 1,

@@ -1,11 +1,10 @@
 const sequelize = require('../config/db');
-const { Activity, ActivityTypes, seedActivityTypes } = require('../models/activites');
-const { Products } = require('../models/products');
+const { Customer, AdditionalCustomersContactInfo } = require('../models/customers');
 
 async function initDB() {
     try {
         // await Activity.sync({ alter: true });
-        await Products.sync({ alter: true });
+        await AdditionalCustomersContactInfo.sync({ alter: true });
         // await seedActivityTypes();
     } catch (error) {
         console.log(error);
