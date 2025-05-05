@@ -22,7 +22,7 @@ const Vendor = sequelize.define("vendor", {
     },
     email: {
         type: DataTypes.STRING(70),
-        allowNull: false,
+        allowNull: true,
         // unique: true
     },
     designation: {

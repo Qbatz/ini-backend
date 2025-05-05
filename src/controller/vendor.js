@@ -28,7 +28,7 @@ exports.basic_info = async (req, res) => {
 
         const { businessName, contactPersonName, contactNumber, emailId, designation, gstvat, country, title, country_code } = basic_info;
 
-        if (!businessName || !contactPersonName || !contactNumber || !emailId || !designation || !gstvat || !title || !country_code) {
+        if (!businessName || !contactPersonName || !contactNumber || !designation || !gstvat || !title || !country_code) {
             return res.status(400).json({ message: "Missing Required Fields" });
         }
     }
@@ -284,7 +284,7 @@ exports.addBasicInfo = async (req, res) => {
 
     try {
 
-        if (!businessName || !contactPersonName || !contactNumber || !emailId || !designation || !gstvat || !title || !country_code) {
+        if (!businessName || !contactPersonName || !contactNumber || !designation || !gstvat || !title || !country_code) {
             return res.status(400).json({ message: "Missing Required Fields" });
         }
 
@@ -317,7 +317,7 @@ exports.addBasicInfo = async (req, res) => {
 
                 if (!existingVendor) {
                     isUnique = true;
-                }           
+                }
             }
 
             vendor_id = uniqueVendorId;
@@ -565,7 +565,7 @@ exports.updatevendor_id = async (req, res) => {
 
     var created_by_id = req.user_id;
 
-    if (!businessName || !contactPersonName || !contactNumber || !emailId || !designation || !gstvat || !title || !country_code) {
+    if (!businessName || !contactPersonName || !contactNumber || !designation || !gstvat || !title || !country_code) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 

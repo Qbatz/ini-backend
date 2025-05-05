@@ -11,7 +11,7 @@ exports.add_customersall = async (req, res) => {
     var created_by_id = req.user_id;
     const { businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, country, country_code, bankDetails, additionalContactInfo, title } = req.body;
 
-    if (!businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness || !title || !country_code) {
+    if (!businessName || !contactPerson || !contactNumber || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness || !title || !country_code) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
@@ -485,7 +485,7 @@ exports.updatecustomer = async (req, res) => {
         const { businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, address, bankDetails, additionalContactInfo, title, country_code } = req.body;
         var updated_by_id = req.user_id;
 
-        if (!title || !country_code || !businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
+        if (!title || !country_code || !businessName || !contactPerson || !contactNumber || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
             return res.status(400).json({ message: "Missing Required Fields" });
         }
 
@@ -683,7 +683,7 @@ exports.addBasicInfo = async (req, res) => {
 
     const { customer_id, businessName, contactPerson, contactNumber, emailId, designation, gstVat, CIN, PAN, TAN, statusOfFirm, natureOfBusiness, additionalContactInfo, country_code, country, title } = req.body;
 
-    if (!title || !country_code || !businessName || !contactPerson || !contactNumber || !emailId || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
+    if (!title || !country_code || !businessName || !contactPerson || !contactNumber || !designation || !gstVat || !PAN || !statusOfFirm || !natureOfBusiness) {
         return res.status(400).json({ message: "Missing Required Fields" });
     }
 
@@ -707,14 +707,14 @@ exports.addBasicInfo = async (req, res) => {
             //     return res.status(400).json({ message: "Mail Id Already Registered Us" });
             // }
 
-            let customerid;
+            let customer_id;
             let isUnique = false;
 
             while (!isUnique) {
                 const randomNumber = Math.floor(10000000 + Math.random() * 90000000);
-                customerid = `CUS-${randomNumber}`;
+                customer_id = `CUS-${randomNumber}`;
 
-                const existingCustomer = await Customer.findOne({ where: { customerid: customerid } });
+                const existingCustomer = await Customer.findOne({ where: { customerid: customer_id } });
 
                 if (!existingCustomer) {
                     isUnique = true;
@@ -726,7 +726,7 @@ exports.addBasicInfo = async (req, res) => {
                 contact_person: contactPerson,
                 contact_number: Number(contactNumber),
                 email: emailId,
-                customerid: customerid,
+                customerid: customer_id,
                 designation: designation,
                 gst_vat: gstVat,
                 country: country || 'IN',
@@ -767,12 +767,12 @@ exports.addBasicInfo = async (req, res) => {
                 activity_id,
                 activity_type_id: "ACT005",
                 user_id: updated_by_id,
-                transaction_id: customerid,
+                transaction_id: customer_id,
                 description: 'Added new Client basic information for' + contactPerson + '',
                 created_by_id: updated_by_id
             });
 
-            return res.status(200).json({ message: "Client added successfully", clientId: customerid });
+            return res.status(200).json({ message: "Client added successfully", clientId: customer_id });
 
         } else {
 
