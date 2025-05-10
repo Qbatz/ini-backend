@@ -9,7 +9,8 @@ const Activity = sequelize.define("activity", {
     },
     activity_id: {
         type: DataTypes.STRING(20),
-        allowNull: false
+        allowNull: false,
+        unique: true,
     },
     activity_type_id: {
         type: DataTypes.STRING(20),
@@ -51,6 +52,7 @@ const ActivityTypes = sequelize.define("activity_types", {
     activity_type_id: {
         type: DataTypes.STRING(20),
         allowNull: false,
+        unique: true,
     },
     activity_name: {
         type: DataTypes.STRING(100),
@@ -182,6 +184,7 @@ async function seedActivityTypes() {
     }
 }
 
+seedActivityTypes()
 
 
 module.exports = { Activity, ActivityTypes, seedActivityTypes }
