@@ -441,7 +441,7 @@ function jsonparsefunc(value, defaultValue = []) {
     try {
         return JSON.parse(value);
     } catch (err) {
-        return defaultValue;
+        return value;
     }
 }
 

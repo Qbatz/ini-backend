@@ -1,5 +1,6 @@
 const sequelize = require('../config/db');
-const { ProductBrand } = require('../models/category');
+const { InvoiceTypes } = require('../models/invoice_package');
+const { InvoiceItems } = require('../models/invoice');
 
 async function initDB() {
     try {
