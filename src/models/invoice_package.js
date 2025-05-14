@@ -29,6 +29,12 @@ const Ports = sequelize.define("ports", {
         type: DataTypes.STRING(255),
         allowNull: false
     },
+    name: {
+        type: DataTypes.STRING(255),
+    },
+    country: {
+        type: DataTypes.STRING(255),
+    },
     city: {
         type: DataTypes.STRING(255),
     },
@@ -138,7 +144,7 @@ const AddInvoiceTypes = async () => {
 
 const AddPortTypes = async () => {
     const defaultValues = [
-        { id: 1, port_code: "MAS-ES", city: "Chennai", state: "Tamil Nadu", type: "Air", mode: "4" },
+        { id: 1, port_code: "MAS-ES", city: "Chennai", state: "Tamil Nadu", type: "Air", mode: "4", country: "India" },
     ];
 
     for (const value of defaultValues) {

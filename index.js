@@ -3,6 +3,7 @@ var cors = require('cors');
 require('dotenv').config();
 const middleware = require('./middleware');
 const associations = require('./src/models/associations');
+const invoiceRoutes = require('./src/routes/invoice_routes');
 
 const app = express()
 
@@ -33,6 +34,7 @@ const authGroup = require('./src/sync/auth_group');
 
 app.use(require('./src/routes/routes'));
 app.use(require('./src/routes/product_routes'));
+app.use(require('./src/routes/invoice_routes'));
 
 app.listen(process.env.PORT, function () {
     console.log("node is started at : " + process.env.PORT + "")
