@@ -20,4 +20,10 @@ router.get('/payments/payment-terms', invoiceroute.allpayment_terms);
 
 router.get('/payments/delivery-terms', invoiceroute.delivery_terms);
 
+router.post('/invoices', invoiceroute.add_invoice);
+
+router.get('/invoices', invoiceroute.get_all_invoices);
+
+router.get('/invoices/:invoice_number', invoiceroute.get_single_invoices);
+
 module.exports = router;

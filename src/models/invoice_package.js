@@ -93,13 +93,21 @@ const DeliveryTerm = sequelize.define("delivery_term", {
 });
 
 const PoforInvoice = sequelize.define("po_for_invoice", {
-    invoice_id: {
+    id: {
         type: DataTypes.BIGINT,
         primaryKey: true,
+        autoIncrement: true
+    },
+    invoice_id: {
+        type: DataTypes.STRING(50),
         allowNull: false
     },
     po_id: {
         type: DataTypes.STRING(50),
+        allowNull: false
+    },
+    po_date: {
+        type: DataTypes.DATE,
         allowNull: false
     },
     is_active: {

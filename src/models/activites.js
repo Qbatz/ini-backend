@@ -174,6 +174,10 @@ const defaultActivityTypes = [
     {
         activity_type_id: 'ACT025',
         activity_name: 'Port',
+    },
+    {
+        activity_type_id: 'ACT026',
+        activity_name: 'Invoice',
     }
 ];
 

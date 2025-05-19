@@ -50,7 +50,7 @@ const PurchaseOrders = sequelize.define('purchase_orders', {
     timestamps: false,
 });
 
-const InvoiceItems = sequelize.define('invoice_items', {
+const InvoiceItem = sequelize.define('invoice_items', {
     id: {
         type: DataTypes.BIGINT,
         autoIncrement: true,
@@ -60,6 +60,13 @@ const InvoiceItems = sequelize.define('invoice_items', {
         type: DataTypes.STRING(50),
         allowNull: false,
         unique: true,
+    },
+    invoice_number: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+    },
+    item_id: {
+        type: DataTypes.STRING(50),
     },
     item_name: {
         type: DataTypes.STRING(250),
@@ -107,34 +114,44 @@ const Invoice = sequelize.define('Invoice', {
         allowNull: false,
     },
     billing_address: {
-        type: DataTypes.STRING(250),
+        type: DataTypes.BIGINT,
     },
     shipping_address: {
-        type: DataTypes.STRING(250),
+        type: DataTypes.BIGINT,
     },
     invoice_type: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.BIGINT,
     },
     invoice_number: {
         type: DataTypes.STRING(50),
+        unique: true
     },
     currency: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.BIGINT,
     },
     invoice_date: {
         type: DataTypes.DATE,
     },
-    origin_of_goods: {
+    delivery_term: {
+        type: DataTypes.BIGINT,
+    },
+    delivery_place: {
         type: DataTypes.STRING(50),
+    },
+    payment_term: {
+        type: DataTypes.BIGINT,
+    },
+    origin_of_goods: {
+        type: DataTypes.BIGINT,
     },
     loading_port: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.BIGINT,
     },
     discharge_port: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.BIGINT,
     },
     destination_country: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.BIGINT,
     },
     shipping_bill_no: {
         type: DataTypes.STRING(150),
@@ -174,4 +191,4 @@ const Invoice = sequelize.define('Invoice', {
     timestamps: false,
 });
 
-module.exports = { PurchaseOrders, InvoiceItems, Invoice }
+module.exports = { PurchaseOrders, InvoiceItem, Invoice }

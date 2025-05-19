@@ -7,6 +7,8 @@ const { Title, CommonCountry, } = require("./masters");
 const { Products, Unit, Inventory, ProductImages, TechnicalDocuments } = require("./products");
 const { Category, SubCategory, ProductBrand } = require("./category");
 const { Activity, ActivityTypes } = require("./activites");
+const { Invoice, InvoiceItem } = require("./invoice");
+const { InvoiceTypes, DeliveryTerm, PaymentTerm, Ports, PoforInvoice } = require("./invoice_package");
 
 
 AuthUser.hasOne(UserCompany, { foreignKey: "user_id", sourceKey: "id" });
@@ -104,5 +106,43 @@ Activity.belongsTo(ActivityTypes, { foreignKey: "activity_type_id", targetKey: "
 
 ActivityTypes.hasMany(Activity, { foreignKey: "activity_type_id", sourceKey: "activity_type_id", as: "ActivityTypes" });
 
+
+// Invoice
+Invoice.belongsTo(CustomerAddress, { foreignKey: "billing_address", targetKey: "id", as: "BillingAddress" });
+CustomerAddress.hasMany(Invoice, { foreignKey: "billing_address", sourceKey: "id", as: "BillingInvoices" });
+
+// Invoice belongsTo ShippingAddress
+Invoice.belongsTo(CustomerAddress, { foreignKey: "shipping_address", targetKey: "id", as: "ShippingAddress" })
+CustomerAddress.hasMany(Invoice, { foreignKey: "shipping_address", sourceKey: "id", as: "ShippingInvoices" });
+
+Invoice.belongsTo(InvoiceTypes, { foreignKey: "invoice_type", as: "InvoiceType", });
+InvoiceTypes.hasMany(Invoice, { foreignKey: "id", as: "InvoiceType", });
+
+Invoice.belongsTo(CommonCountry, { foreignKey: "currency", as: "CurrecyDetail", });
+CommonCountry.hasMany(Invoice, { foreignKey: "id", as: "CurrecyDetail", });
+
+Invoice.belongsTo(DeliveryTerm, { foreignKey: "delivery_term", as: "DeliveryTerm", });
+DeliveryTerm.hasMany(Invoice, { foreignKey: "id", as: "DeliveryTerm", });
+
+Invoice.belongsTo(PaymentTerm, { foreignKey: "payment_term", as: "PaymentTerm", });
+PaymentTerm.hasMany(Invoice, { foreignKey: "id", as: "PaymentTerm", });
+
+Invoice.belongsTo(CommonCountry, { foreignKey: "origin_of_goods", as: "OriginofGoods", });
+CommonCountry.hasMany(Invoice, { foreignKey: "id", as: "OriginofGoods", });
+
+Invoice.belongsTo(Ports, { foreignKey: "loading_port", as: "LoadingPort", });
+Ports.hasMany(Invoice, { foreignKey: "id", as: "LoadingPort", });
+
+Invoice.belongsTo(Ports, { foreignKey: "discharge_port", as: "DischargePort", });
+Ports.hasMany(Invoice, { foreignKey: "id", as: "DischargePort", });
+
+Invoice.belongsTo(CommonCountry, { foreignKey: "destination_country", as: "DestinationCountry", });
+CommonCountry.hasMany(Invoice, { foreignKey: "id", as: "DestinationCountry", });
+
+Invoice.hasMany(PoforInvoice, { foreignKey: "invoice_id", sourceKey: "invoice_number", as: "POs" });
+PoforInvoice.belongsTo(Invoice, { foreignKey: "invoice_id", targetKey: "invoice_number", as: "Invoice" });
+
+Invoice.hasMany(InvoiceItem, { foreignKey: "invoice_number", sourceKey: "invoice_number", as: "InvoiceItems" });
+InvoiceItem.belongsTo(Invoice, { foreignKey: "invoice_number", targetKey: "invoice_number", as: "Invoice" });
 
 module.exports = { Vendor, Address, BankDetails, AdditionalContactInfo, AuthUser, UserCompany, Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails, AddressType };
