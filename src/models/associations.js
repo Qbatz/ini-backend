@@ -145,4 +145,8 @@ PoforInvoice.belongsTo(Invoice, { foreignKey: "invoice_id", targetKey: "invoice_
 Invoice.hasMany(InvoiceItem, { foreignKey: "invoice_number", sourceKey: "invoice_number", as: "InvoiceItems" });
 InvoiceItem.belongsTo(Invoice, { foreignKey: "invoice_number", targetKey: "invoice_number", as: "Invoice" });
 
+Invoice.belongsTo(Customer, { foreignKey: "customer_id", targetKey: "customerid", as: "CustomerDetails" });
+Customer.hasMany(Invoice, { foreignKey: "customer_id", sourceKey: "customerid", as: "Invoices" });
+
+
 module.exports = { Vendor, Address, BankDetails, AdditionalContactInfo, AuthUser, UserCompany, Customer, NameofBussiness, LegalStatus, AdditionalCustomersContactInfo, CustomerAddress, customer_BankDetails, AddressType };

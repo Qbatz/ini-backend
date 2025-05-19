@@ -310,6 +310,11 @@ exports.get_all_invoices = async (req, res) => {
             where: whereCondition,
             include: [
                 {
+                    model: Customer,
+                    attributes: ["business_name", "contact_person", "contact_number", "email", "designation"],
+                    as: 'CustomerDetails'
+                },
+                {
                     model: CustomerAddress,
                     attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
                     as: 'BillingAddress'
@@ -374,6 +379,13 @@ exports.get_all_invoices = async (req, res) => {
 
         const formattedInvoices = invoices.map(inv => ({
             customerId: inv.customer_id,
+            customerDetails: inv.CustomerDetails ? {
+                business_name: inv.CustomerDetails.business_name,
+                contact_person: inv.CustomerDetails.contact_person,
+                contact_number: inv.CustomerDetails.contact_number,
+                email: inv.CustomerDetails.email,
+                designation: inv.CustomerDetails.designation,
+            } : null,
             shippingAddress: inv.ShippingAddress ? {
                 id: inv.ShippingAddress.id,
                 address_line1: inv.ShippingAddress.address_line1,
@@ -459,6 +471,11 @@ exports.get_single_invoices = async (req, res) => {
             where: { invoice_number: invoice_number },
             include: [
                 {
+                    model: Customer,
+                    attributes: ["business_name", "contact_person", "contact_number", "email", "designation"],
+                    as: 'CustomerDetails'
+                },
+                {
                     model: CustomerAddress,
                     attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
                     as: 'BillingAddress'
@@ -523,6 +540,13 @@ exports.get_single_invoices = async (req, res) => {
 
         const formattedInvoices = invoices.map(inv => ({
             customerId: inv.customer_id,
+            customerDetails: inv.CustomerDetails ? {
+                business_name: inv.CustomerDetails.business_name,
+                contact_person: inv.CustomerDetails.contact_person,
+                contact_number: inv.CustomerDetails.contact_number,
+                email: inv.CustomerDetails.email,
+                designation: inv.CustomerDetails.designation,
+            } : null,
             shippingAddress: inv.ShippingAddress ? {
                 id: inv.ShippingAddress.id,
                 address_line1: inv.ShippingAddress.address_line1,
