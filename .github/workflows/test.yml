@@ -1,20 +1,29 @@
-name: Deploy Scrips Temp
+name: NodeJS with Webpack
 
 on:
-  push: 
-    branches: [main2]
+  push:
+    branches: [ "main2" ]
+  pull_request:
+    branches: [ "main2" ]
 
 jobs:
-  deploy: 
+  build:
     runs-on: ubuntu-latest
-    environment: stage
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
 
     steps:
-      - name: Fetch Env details
-        run: echo ${{ secrets.DB_HOST }}
+    - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: npm install
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
 
-      - name: Run app
-        run: node index
+    - name: Fetch Env details
+      run: echo ${{ secrets.DB_HOST }}
+        
+    - name: Build
+      run: npm install
