@@ -14,7 +14,7 @@ async function executeQueries() {
         }
         console.log("All queries executed successfully.");
     } catch (error) {
-        // console.error("Error executing query:", error);
+        console.error("Error executing query:", error);
     } finally {
         await db.close()
     }
