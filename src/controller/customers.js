@@ -210,7 +210,7 @@ exports.all_customers = async (req, res) => {
             include: [
                 {
                     model: CustomerAddress,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
+                    attributes: ["id", "address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
                     include: [
                         {
                             model: AddressType,
@@ -221,12 +221,12 @@ exports.all_customers = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban", "currency"],
+                    attributes: ["id", "name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban", "currency"],
                     order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalCustomersContactInfo,
-                    attributes: ["name", "number", "email", "designation", "country", "title", "country_code"],
+                    attributes: ["id", "name", "number", "email", "designation", "country", "title", "country_code"],
                     include: [
                         {
                             model: Title,
@@ -284,6 +284,7 @@ exports.all_customers = async (req, res) => {
                 natureOfBusiness: businessIds || "",
                 natureOfBusinessNames: matchedBusinesses.map(b => b.type),
                 address: (customer.customer_addresses || []).map(addr => ({
+                    id: addr.id || "",
                     doorNo: addr.address_line1 || "",
                     street: addr.address_line2 || "",
                     locality: addr.address_line3 || "",
@@ -297,6 +298,7 @@ exports.all_customers = async (req, res) => {
                     addressType: addr.AddressType ? addr.AddressType.type : "",
                 })),
                 bankDetails: (customer.customer_bank_details || []).map(bank => ({
+                    id: bank.id || "",
                     name: bank.name || "",
                     accountNo: bank.account_number || "",
                     bankName: bank.bank_name || "",
@@ -315,6 +317,7 @@ exports.all_customers = async (req, res) => {
                     intermediary_swift_code: bank.intermediary_swift_code || ""
                 })),
                 additionalContactInfo: (customer.additional_customers_contact_infos || []).map(contact => ({
+                    id: contact.id || "",
                     name: contact.name || "",
                     contactNumber: contact.number || "",
                     contactEmail: contact.email || "",
@@ -350,7 +353,7 @@ exports.one_customer = async (req, res) => {
             include: [
                 {
                     model: CustomerAddress,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
+                    attributes: ["id", "address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
                     include: [
                         {
                             model: AddressType,
@@ -361,12 +364,12 @@ exports.one_customer = async (req, res) => {
                 },
                 {
                     model: customer_BankDetails,
-                    attributes: ["name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban", "currency"],
+                    attributes: ["id", "name", "account_number", "bank_name", "ifsc_code", "address_line1", "address_line2", "address_line3", "country", "routing_bank", "swift_code", "routing_bank_address", "routing_account_indusind", "isPrimary", "intermediary_swift_code", "iban", "currency"],
                     order: [["isPrimary", "DESC"]]
                 },
                 {
                     model: AdditionalCustomersContactInfo,
-                    attributes: ["name", "number", "email", "designation", "country", "title", "country_code"],
+                    attributes: ["id", "name", "number", "email", "designation", "country", "title", "country_code"],
                     include: [
                         {
                             model: Title,
@@ -424,6 +427,7 @@ exports.one_customer = async (req, res) => {
                 natureOfBusiness: businessIds || "",
                 natureOfBusinessNames: matchedBusinesses.map(b => b.type),
                 address: (customer.customer_addresses || []).map(addr => ({
+                    id: addr.id || "",
                     doorNo: addr.address_line1 || "",
                     street: addr.address_line2 || "",
                     locality: addr.address_line3 || "",
@@ -437,6 +441,7 @@ exports.one_customer = async (req, res) => {
                     addressType: addr.AddressType ? addr.AddressType.type : "",
                 })),
                 bankDetails: (customer.customer_bank_details || []).map(bank => ({
+                    id: bank.id || "",
                     name: bank.name || "",
                     accountNo: bank.account_number || "",
                     bankName: bank.bank_name || "",
@@ -455,6 +460,7 @@ exports.one_customer = async (req, res) => {
                     intermediary_swift_code: bank.intermediary_swift_code || ""
                 })),
                 additionalContactInfo: (customer.additional_customers_contact_infos || []).map(contact => ({
+                    id: contact.id || "",
                     name: contact.name || "",
                     contactNumber: contact.number || "",
                     contactEmail: contact.email || "",
