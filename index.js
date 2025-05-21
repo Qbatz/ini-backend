@@ -4,6 +4,8 @@ require('dotenv').config();
 const middleware = require('./middleware');
 const associations = require('./src/models/associations');
 const invoiceRoutes = require('./src/routes/invoice_routes');
+const loadYamlEnv = require('./configloader');
+loadYamlEnv('./app.yml');
 
 const app = express()
 
@@ -31,6 +33,7 @@ app.use(middleware);
 
 const authGroup = require('./src/sync/auth_group');
 // const dbQuery = require('./db_query');
+
 
 app.use(require('./src/routes/routes'));
 app.use(require('./src/routes/product_routes'));
