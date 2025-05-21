@@ -32,15 +32,6 @@ jobs:
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
           echo "PORT=${{ secrets.PORT }}" >> .env
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-
-      - name: Debug .env
-        run: |
-          echo ".env file content:"
-          cat .env
-
-      - name: List files
-        run: ls -la
-
      
       - name: Run app
         run: node index.js
