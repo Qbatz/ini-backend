@@ -276,13 +276,16 @@ exports.get_all_invoices = async (req, res) => {
 
     try {
         const createdById = req.user_id;
-        const searchKeyword = req.query.searchKeyword || "";
+        const searchKeyword = req.query.keyword || "";
         const startDate = req.query.startDate || "";
         const endDate = req.query.endDate || "";
 
         let whereCondition = {
             created_by_id: createdById,
             is_active: true,
+            invoice_number: {
+                [Op.iLike]: `%${searchKeyword.toLowerCase()}%`
+            }
         };
 
         if (startDate && endDate) {
@@ -296,7 +299,7 @@ exports.get_all_invoices = async (req, res) => {
         } else if (startDate) {
             const start = new Date(startDate);
             whereCondition.created_on = {
-                [Op.gte]: start
+                [Op.gte]: start,
             };
         } else if (endDate) {
             const end = new Date(endDate);
