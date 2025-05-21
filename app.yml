@@ -1,5 +1,0 @@
-env : 
-  YML_DB_HOST : ${{secrets.DB_HOST}}
-  YML_DB_USER : "dbmasteruser"
-  YML_DB_NAME : "inai_testdb"
-  YML_DB_PASSWORD: "t.XGpXk3#O.lHn-,U#~LIvucS-:MY<wk"
