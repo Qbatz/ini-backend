@@ -15,18 +15,27 @@ jobs:
         node-version: [20.x]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Fetch Env details
-      run: echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-        
-    - name: Build
-      run: npm install
+      - name: Create .env file from GitHub Secrets
+        run: |
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
 
-    - name: run build
-      run: node index
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project with Webpack
+        run: npm run build
+
+      - name: Run app
+        run: node index.js
