@@ -1,0 +1,14 @@
+name: Deploy Scrips Temp
+
+on:
+  push: 
+    branches: [main2]
+
+jobs:
+  deploy: 
+    runs-on: ubuntu-latest
+    environment: stage
+
+    steps:
+      - name: Fetch Env details
+        run: echo ${{ secrets.DB_HOST }}
