@@ -12,3 +12,9 @@ jobs:
     steps:
       - name: Fetch Env details
         run: echo ${{ secrets.DB_HOST }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run app
+        run: node index
