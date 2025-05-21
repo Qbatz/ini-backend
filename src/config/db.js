@@ -1,12 +1,10 @@
 const { Sequelize } = require('sequelize');
-const loadEnvAndYaml = require('../../configloader');
-loadEnvAndYaml();
 
 const sequelize = new Sequelize({
-    database: process.env.YML_DB_NAME,
-    username: process.env.YML_DB_USER,
-    password: process.env.YML_DB_PASSWORD,
-    host: process.env.YML_DB_HOST,
+    database: process.env.DB_NAME,
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
     port: 5432,
     dialect: "postgres",
     dialectOptions: {

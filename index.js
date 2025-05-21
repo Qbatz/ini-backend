@@ -4,8 +4,6 @@ require('dotenv').config();
 const middleware = require('./middleware');
 const associations = require('./src/models/associations');
 const invoiceRoutes = require('./src/routes/invoice_routes');
-const loadYamlEnv = require('./configloader');
-loadYamlEnv('./app.yml');
 
 const app = express()
 
@@ -40,5 +38,6 @@ app.use(require('./src/routes/product_routes'));
 app.use(require('./src/routes/invoice_routes'));
 
 app.listen(process.env.PORT, function () {
+    console.log(process.env.DB_HOST)
     console.log("node is started at : " + process.env.PORT + "")
 })
