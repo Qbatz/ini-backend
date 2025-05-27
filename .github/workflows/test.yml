@@ -1,4 +1,4 @@
-name: NodeJS with Webpack
+name: NodeJS CI/CD to EC2 as Root
 
 on:
   push:
@@ -7,36 +7,38 @@ on:
     branches: [ "main2" ]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          
+
       - name: Install dependencies
         run: npm install
 
-      - name: Create .env file from GitHub Secrets
-        run: |
-          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          echo "PORT=${{ secrets.PORT }}" >> .env
-          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-
-      - name: Debug .env
-        run: |
-          echo ".env file content:"
-          cat .env
-     
-      - name: Run app
-        run: node index.js
+      - name: Deploy to EC2 as root
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: root
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /usr/share/nginx/html/inai_backend
+            git pull origin main2
+            npm install
+            echo "DB_USER=${{ secrets.DB_USER }}" > .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            pm2 restart your-app || pm2 start index.js --name inaitestinggit
