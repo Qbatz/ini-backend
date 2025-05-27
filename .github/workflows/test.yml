@@ -1,4 +1,4 @@
-name: NodeJS CI/CD to EC2 as Root
+name: NodeJS CI/CD to EC2
 
 on:
   push:
@@ -26,20 +26,19 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Deploy to EC2 as root
+      - name: Deploy to EC2 via SSH as ec2-user
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: root
+          username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo su - <<'EOF'
-            cd /usr/share/nginx/html/inai_backend
-            git pull origin main2
-            npm install
-            echo "DB_USER=${{ secrets.DB_USER }}" > .env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-            echo "PORT=${{ secrets.PORT }}" >> .env
-            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-            pm2 restart your-app || pm2 start index.js --name inaitestinggit
+            sudo su -c "cd /usr/share/nginx/html/inai_backend && \
+              git pull origin main2 && \
+              npm install && \
+              echo DB_USER='${{ secrets.DB_USER }}' > .env && \
+              echo DB_PASSWORD='${{ secrets.DB_PASSWORD }}' >> .env && \
+              echo DB_HOST='${{ secrets.DB_HOST }}' >> .env && \
+              echo PORT='${{ secrets.PORT }}' >> .env && \
+              echo DB_NAME='${{ secrets.DB_NAME }}' >> .env && \
+              pm2 restart your-app || pm2 start index.js --name inaitestinggit"
