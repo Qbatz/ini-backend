@@ -26,11 +26,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Deploy to EC2 via SSH (system-wide Node)
+      - name: Deploy to EC2 via SSH (as root with PM2)
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
+          username: root
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /usr/share/nginx/html/inai_backend
@@ -38,10 +38,10 @@ jobs:
             git pull origin main2
             npm install
 
-            echo "DB_USER=${{ secrets.DB_USER }}" | sudo tee .env > /dev/null
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" | sudo tee -a .env > /dev/null
-            echo "DB_HOST=${{ secrets.DB_HOST }}" | sudo tee -a .env > /dev/null
-            echo "PORT=${{ secrets.PORT }}" | sudo tee -a .env > /dev/null
-            echo "DB_NAME=${{ secrets.DB_NAME }}" | sudo tee -a .env > /dev/null
+            echo "DB_USER=${{ secrets.DB_USER }}" > .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
 
             pm2 restart inaitestingapi.s3remotica.com || pm2 start index.js --name inaitestingapi.s3remotica.com
