@@ -33,6 +33,7 @@ jobs:
           username: root
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            sudo su - <<'EOF'
             cd /usr/share/nginx/html/inai_backend
             git pull origin main2
             npm install
