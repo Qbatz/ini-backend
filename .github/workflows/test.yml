@@ -26,19 +26,24 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Deploy to EC2 via SSH as ec2-user
+      - name: Deploy to EC2 via SSH with NVM support
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo su -c "cd /usr/share/nginx/html/inai_backend && \
-              git pull origin main2 && \
-              npm install && \
-              echo DB_USER='${{ secrets.DB_USER }}' > .env && \
-              echo DB_PASSWORD='${{ secrets.DB_PASSWORD }}' >> .env && \
-              echo DB_HOST='${{ secrets.DB_HOST }}' >> .env && \
-              echo PORT='${{ secrets.PORT }}' >> .env && \
-              echo DB_NAME='${{ secrets.DB_NAME }}' >> .env && \
-              pm2 restart your-app || pm2 start index.js --name inaitestinggit"
+            export NVM_DIR="/root/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 22
+
+            cd /usr/share/nginx/html/inai_backend
+            git pull origin main2
+            npm install
+            echo "DB_USER=${{ secrets.DB_USER }}" > .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+
+            pm2 restart inaitestingapi.s3remotica.com || pm2 start index.js --name inaitestingapi.s3remotica.com
