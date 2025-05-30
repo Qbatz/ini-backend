@@ -248,7 +248,8 @@ exports.login = async (req, res) => {
 
         // Generate token
         const token = generateToken(user);
-
+        console.log(token);
+        
         const activity_id = await activityid.generateNextActivityId();
 
         await Activity.create({
@@ -265,6 +266,7 @@ exports.login = async (req, res) => {
         return res.status(200).json({ access: token });
 
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ message: error.message });
     }
 };
