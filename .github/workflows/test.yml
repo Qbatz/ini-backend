@@ -33,8 +33,8 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /usr/share/nginx/html/inai_backend
-            git config --global --add safe.directory /usr/share/nginx/html/inai_backend
+            cd /usr/share/nginx/html/ini-backend
+            git config --global --add safe.directory /usr/share/nginx/html/ini-backend
             git pull origin main2
             npm install
 
