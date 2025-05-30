@@ -39,4 +39,5 @@ app.use(require('./src/routes/invoice_routes'));
 
 app.listen(process.env.PORT, function () {
     console.log("node is started at : " + process.env.PORT + "")
+    console.log("JWT Key is : " + process.env.JWT_SECRET + "")
 })
