@@ -41,5 +41,17 @@ jobs:
             echo "DB_HOST=${{ secrets.DB_HOST }}" | sudo tee -a .env > /dev/null
             echo "PORT=${{ secrets.PORT }}" | sudo tee -a .env > /dev/null
             echo "DB_NAME=${{ secrets.DB_NAME }}" | sudo tee -a .env > /dev/null
-
+            "JWT_SECRET"=${{ secrets.JWT_SECRET }}" | sudo tee -a .env > /dev/null
+            "SITE_URL"=${{ secrets.SITE_URL }}" | sudo tee -a .env > /dev/null
+            "DEV_RE_SECRET_KEY"=${{ secrets.DEV_RE_SECRET_KEY }}" | sudo tee -a .env > /dev/null
+            "LOCAL_RE_SECRET_KEY"=${{ secrets.LOCAL_RE_SECRET_KEY }}" | sudo tee -a .env > /dev/null
+            "TESTING_RE_SECRET_KEY"=${{ secrets.TESTING_RE_SECRET_KEY }}" | sudo tee -a .env > /dev/null
+            "MAIL_USER"=${{ secrets.MAIL_USER }}" | sudo tee -a .env > /dev/null
+            "MAIL_PASSWORD"=${{ secrets.MAIL_PASSWORD }}" | sudo tee -a .env > /dev/null
+            "FASTSMAS_KEY"=${{ secrets.FASTSMAS_KEY }}" | sudo tee -a .env > /dev/null
+            "AWS_ACCESS_KEY_ID"=${{ secrets.AWS_ACCESS_KEY_ID }}" | sudo tee -a .env > /dev/null
+            "AWS_SECRET_ACCESS_KEY"=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | sudo tee -a .env > /dev/null
+            "AWS_REGION"=${{ secrets.AWS_REGION }}" | sudo tee -a .env > /dev/null
+            "AWS_BUCKET_NAME"=${{ secrets.AWS_BUCKET_NAME }}" | sudo tee -a .env > /dev/null
+        
             pm2 restart inaitestingapi.s3remotica.com || pm2 start index.js --name inaitestingapi.s3remotica.com
