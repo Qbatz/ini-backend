@@ -35,6 +35,7 @@ jobs:
 
             sudo git add *
             sudo git commit -m "local commits"
+            sudo git push origin main2
             sudo git pull origin main2
             sudo npm install
 
