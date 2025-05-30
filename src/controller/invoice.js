@@ -452,7 +452,8 @@ exports.get_all_invoices = async (req, res) => {
                 poDate: po.po_date ? moment(po.po_date).format('DD-MM-YYYY') : null,
             })) : [],
             products: inv.InvoiceItems ? inv.InvoiceItems.map(item => ({
-                productId: item.invoice_item_code,
+                productId: item.item_id,
+                itemCode: item.invoice_item_code,
                 hsnCode: item.hsn_code,
                 quantity: item.quantity,
                 price: item.amount_per_unit,
