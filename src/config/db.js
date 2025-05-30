@@ -13,7 +13,7 @@ const sequelize = new Sequelize({
             rejectUnauthorized: false // This line will fix new error
         }
     },
-    logging: false 
+    logging: false
 });
 
 module.exports = sequelize;
