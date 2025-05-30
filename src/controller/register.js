@@ -246,10 +246,11 @@ exports.login = async (req, res) => {
             return res.status(402).json({ detail: "Invalid Password" });
         }
 
+        console.log("JWT_SECRET", process.env.JWT_SECRET);
         // Generate token
         const token = generateToken(user);
         console.log(token);
-        
+
         const activity_id = await activityid.generateNextActivityId();
 
         await Activity.create({
@@ -266,8 +267,8 @@ exports.login = async (req, res) => {
         return res.status(200).json({ access: token });
 
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: error.message });
+        console.log("API error",error);
+        return res.status(400).json({ message: error.message });
     }
 };
 
