@@ -32,11 +32,13 @@ app.use(middleware);
 const authGroup = require('./src/sync/auth_group');
 // const dbQuery = require('./db_query');
 
+
 app.use(require('./src/routes/routes'));
 app.use(require('./src/routes/product_routes'));
 app.use(require('./src/routes/invoice_routes'));
 
 app.listen(process.env.PORT, function () {
+    console.log(process.env.DB_HOST)
     console.log("node is started at : " + process.env.PORT + "")
     console.log("Host Name : " + process.env.DB_HOST + "");
     console.log("Host Password : " + process.env.DB_PASSWORD + "");
