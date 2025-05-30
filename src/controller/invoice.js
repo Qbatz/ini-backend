@@ -241,7 +241,7 @@ exports.add_invoice = async (req, res) => {
                     invoice_number: invoice_number,
                     item_id: invoice.productId,
                     item_name: product.product_name,
-                    hsn_code: invoice.hsn_code,
+                    hsn_code: invoice.hsnCode,
                     quantity: quantity,
                     amount_per_unit: amount,
                     total_amount: total_amount,
@@ -319,12 +319,12 @@ exports.get_all_invoices = async (req, res) => {
                 },
                 {
                     model: CustomerAddress,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
+                    attributes: ["id", "address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
                     as: 'BillingAddress'
                 },
                 {
                     model: CustomerAddress,
-                    attributes: ["address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
+                    attributes: ["id", "address_line1", "address_line2", "address_line3", "address_line4", "city", "state", "country", "postal_code", "landmark", "maplink", "address_type"],
                     as: 'ShippingAddress'
                 },
                 {
@@ -364,7 +364,7 @@ exports.get_all_invoices = async (req, res) => {
                 },
                 {
                     model: CommonCountry,
-                    attributes: ['code'],
+                    attributes: ['code', 'name'],
                     as: 'DestinationCountry'
                 },
                 {
@@ -431,6 +431,7 @@ exports.get_all_invoices = async (req, res) => {
             dischargePortId: inv.discharge_port || null,
             destinationId: inv.destination_country,
             destination: inv.DestinationCountry ? inv.DestinationCountry.code : null,
+            destinationName: inv.DestinationCountry ? inv.DestinationCountry.name : null,
             deliveryTerm: inv.DeliveryTerm ? inv.DeliveryTerm.type : null,
             deliveryTermId: inv.delivery_term,
             deliveryPlace: inv.delivery_place || null,
@@ -455,7 +456,8 @@ exports.get_all_invoices = async (req, res) => {
                 hsnCode: item.hsn_code,
                 quantity: item.quantity,
                 price: item.amount_per_unit,
-                packageNo: item.package_no
+                total_amount: item.total_amount,
+                packageNo: item.package_no || ""
             })) : []
         }));
 
