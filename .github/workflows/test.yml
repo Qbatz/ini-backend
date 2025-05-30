@@ -36,7 +36,7 @@ jobs:
             cd /usr/share/nginx/html/ini-backend
             git config --global --add safe.directory /usr/share/nginx/html/ini-backend
             git pull origin main2
-            npm install
+            sudo npm install
 
             echo "DB_USER=${{ secrets.DB_USER }}" | sudo tee .env > /dev/null
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" | sudo tee -a .env > /dev/null
