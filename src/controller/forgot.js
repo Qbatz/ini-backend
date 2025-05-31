@@ -27,15 +27,8 @@ exports.forget_clientid = async (req, res) => {
     }
 
     try {
-        // const secretKey = process.env.SECRET_KEY;
-
-        var hostname = req.hostname;
-
-        if (hostname == "localhost" || hostname == "inaitestingapi.s3remotica.com") {
-            var secretKey = process.env.LOCAL_RE_SECRET_KEY;
-        } else {
-            var secretKey = process.env.DEV_RE_SECRET_KEY;
-        }
+        
+        var secretKey = process.env.SECRET_KEY;
 
         const url = "https://www.google.com/recaptcha/api/siteverify";
 

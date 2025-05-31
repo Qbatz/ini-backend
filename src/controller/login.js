@@ -43,16 +43,7 @@ exports.email_verify = async (req, res) => {
             return res.status(400).json({ message: "Email Already registered with us" });
         } else {
 
-            var hostname = req.hostname;
-
-            if (hostname == "localhost" || hostname == "inaitestingapi.s3remotica.com") {
-                var secretKey = process.env.LOCAL_RE_SECRET_KEY;
-            } else {
-                var secretKey = process.env.DEV_RE_SECRET_KEY;
-            }
-
-            console.log(secretKey);
-
+            var secretKey = process.env.SECRET_KEY;
 
             const url = "https://www.google.com/recaptcha/api/siteverify";
 
@@ -177,13 +168,7 @@ exports.forgot_password = async (req, res) => {
             return res.status(400).json({ message: "Missing Recaptcha Code" });
         }
 
-        var hostname = req.hostname;
-
-        if (hostname == "localhost" || hostname == "inaitestingapi.s3remotica.com") {
-            var secretKey = process.env.LOCAL_RE_SECRET_KEY;
-        } else {
-            var secretKey = process.env.DEV_RE_SECRET_KEY;
-        }
+        var secretKey = process.env.SECRET_KEY;
 
         // const secretKey = process.env.SECRET_KEY;
         const url = "https://www.google.com/recaptcha/api/siteverify";
