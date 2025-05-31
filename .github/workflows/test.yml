@@ -2,13 +2,16 @@ name: NodeJS CI/CD to EC2
 
 on:
   push:
-    branches: [ "main2" ]
+    branches: [ "staging" ]
   pull_request:
-    branches: [ "main2" ]
+    branches: [ "staging" ]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    environment:
+      name: staging
 
     strategy:
       matrix:
@@ -36,6 +39,7 @@ jobs:
             sudo git pull origin main2
             sudo npm install
 
+            echo "ENV_NAME=${{vars.ENV_NAME}}" | sudo tee .env > /dev/null
             echo "DB_USER=${{ secrets.DB_USER }}" | sudo tee .env > /dev/null
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" | sudo tee -a .env > /dev/null
             echo "DB_HOST=${{ secrets.DB_HOST }}" | sudo tee -a .env > /dev/null
