@@ -2,16 +2,16 @@ name: NodeJS CI/CD to EC2
 
 on:
   push:
-    branches: [ "main2" ]
+    branches: [ "staging" ]
   pull_request:
-    branches: [ "main2" ]
+    branches: [ "staging" ]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     environment:
-      name: dev
+      name: staging
 
     strategy:
       matrix:
@@ -33,13 +33,14 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /usr/share/nginx/html/inai-dev-api.s3remotica.com
-            git config --global --add safe.directory /usr/share/nginx/html/inai-dev-api.s3remotica.com
+            cd /usr/share/nginx/html/inai-stage-api.s3remotica.com
+            git config --global --add safe.directory /usr/share/nginx/html/inai-stage-api.s3remotica.com
 
-            sudo git pull origin main2
+            sudo git pull origin staging
             sudo npm install
 
-            echo "ENV_NAME=${{ vars.ENV_NAME}}" | sudo tee .env > /dev/null
+            echo "ENV_NAME=${{vars.ENV_NAME}}" | sudo tee .env > /dev/null
+
             echo "DB_USER=${{ secrets.DB_USER }}" | sudo tee .env > /dev/null
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" | sudo tee -a .env > /dev/null
             echo "DB_HOST=${{ secrets.DB_HOST }}" | sudo tee -a .env > /dev/null
@@ -55,5 +56,5 @@ jobs:
             echo "AWS_REGION=${{ secrets.AWS_REGION }}" | sudo tee -a .env > /dev/null
             echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" | sudo tee -a .env > /dev/null
         
-            pm2 restart inai-dev-api.s3remotica.com || pm2 start index.js --name inai-dev-api.s3remotica.com
+            pm2 restart inai-stage-api.s3remotica.com || pm2 start index.js --name inai-stage-api.s3remotica.com
 
