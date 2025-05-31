@@ -24,7 +24,10 @@ router.post('/user/company-registration', registerrouter.company_registration);
 
 router.post('/user/forgot-clientid', forgotrouter.forget_clientid);
 
+// Without Recaptcha
 router.post('/auth/token', registerrouter.login);
+
+router.post('/auth/v1/token', registerrouter.v1_login);  // With Recaptcha
 
 router.post('/user/reset-password', registerrouter.reset_password);
 

@@ -267,11 +267,115 @@ exports.login = async (req, res) => {
         return res.status(200).json({ access: token });
 
     } catch (error) {
-        console.log("API error",error);
+        console.log("API error", error);
         return res.status(400).json({ message: error.message });
     }
 };
 
+exports.v1_login = async (req, res) => {
+    
+    var { company_code, password, username, recaptcha } = req.body;
+
+    if (!company_code) {
+        return res.status(400).json({ message: "Missing Client Id" });
+    }
+
+    if (!username) {
+        return res.status(400).json({ message: "Missing User Id" });
+    }
+
+    if (!password) {
+        return res.status(400).json({ message: "Missing Password" });
+    }
+
+    if (!recaptcha) {
+        return res.status(400).json({ message: "Missing Recaptcha Code" })
+    }
+
+    try {
+
+        var hostname = req.hostname;
+
+        if (hostname == "localhost" || hostname == "inaitestingapi.s3remotica.com") {
+            var secretKey = process.env.LOCAL_RE_SECRET_KEY;
+        } else {
+            var secretKey = process.env.DEV_RE_SECRET_KEY;
+        }
+
+        console.log(secretKey);
+
+        const url = "https://www.google.com/recaptcha/api/siteverify";
+
+        const formData = {
+            secret: secretKey,
+            response: recaptcha
+        };
+
+        request.post({
+            url: url,
+            form: formData,
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        }, async (error, response, body) => {
+            if (error) {
+                console.log(error);
+                return res.status(400).json({ message: "Error verifying reCAPTCHA", error });
+            }
+
+            const data = JSON.parse(body);
+
+            if (data.success) {
+
+                // Fetch user details using Sequelize model
+                const user = await AuthUser.findOne({
+                    attributes: ['id', 'password', 'first_name', 'last_name', 'email', 'username'],
+                    include: [{
+                        model: UserCompany,
+                        where: { customer_id: company_code },
+                        attributes: []
+                    }],
+                    where: { username, is_active: true }
+                });
+
+                if (!user) {
+                    return res.status(401).json({ detail: "No active account found with the given credentials" });
+                }
+
+                // Verify password
+                const check_password = verifyPassword(password, user.password);
+                if (!check_password) {
+                    return res.status(402).json({ detail: "Invalid Password" });
+                }
+
+                console.log("JWT_SECRET", process.env.JWT_SECRET);
+                // Generate token
+                const token = generateToken(user);
+                console.log(token);
+
+                const activity_id = await activityid.generateNextActivityId();
+
+                await Activity.create({
+                    activity_id,
+                    activity_type_id: "ACT001",
+                    user_id: user.id,
+                    description: "User Logged In",
+                    created_by_id: user.id
+                });
+
+                // Update last login time
+                await user.update({ last_login: new Date() });
+
+                return res.status(200).json({ access: token });
+
+            } else {
+                return res.status(400).json({ message: "Failed reCAPTCHA verification" });
+            }
+        })
+
+    } catch (error) {
+        console.log("API error", error);
+        return res.status(400).json({ message: error.message });
+    }
+};
 
 exports.reset_password = async (req, res) => {
 
