@@ -34,7 +34,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /usr/share/nginx/html/ini-backend
-            git config --global --add safe.directory /usr/share/nginx/html/ini-backend
+            git config --global --add safe.directory /usr/share/nginx/html/inai-dev-api.s3remotica.com
 
             sudo git pull origin main2
             sudo npm install
@@ -58,4 +58,4 @@ jobs:
             echo "AWS_REGION"=${{ secrets.AWS_REGION }}" | sudo tee -a .env > /dev/null
             echo "AWS_BUCKET_NAME"=${{ secrets.AWS_BUCKET_NAME }}" | sudo tee -a .env > /dev/null
         
-            pm2 restart inaitestingapi.s3remotica.com || pm2 start index.js --name inaitestingapi.s3remotica.com
+            pm2 restart inai-dev-api.s3remotica.com || pm2 start index.js --name inai-dev-api.s3remotica.com
