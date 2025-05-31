@@ -273,7 +273,7 @@ exports.login = async (req, res) => {
 };
 
 exports.v1_login = async (req, res) => {
-    
+
     var { company_code, password, username, recaptcha } = req.body;
 
     if (!company_code) {
@@ -294,13 +294,7 @@ exports.v1_login = async (req, res) => {
 
     try {
 
-        var hostname = req.hostname;
-
-        if (hostname == "localhost" || hostname == "inaitestingapi.s3remotica.com") {
-            var secretKey = process.env.LOCAL_RE_SECRET_KEY;
-        } else {
-            var secretKey = process.env.DEV_RE_SECRET_KEY;
-        }
+        var secretKey = process.env.SECRET_KEY;
 
         console.log(secretKey);
 
