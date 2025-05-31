@@ -45,6 +45,8 @@ exports.email_verify = async (req, res) => {
 
             var secretKey = process.env.SECRET_KEY;
 
+            console.log("secretKey", secretKey);
+
             const url = "https://www.google.com/recaptcha/api/siteverify";
 
             const formData = {
@@ -94,6 +96,7 @@ exports.email_verify = async (req, res) => {
                     return res.status(200).json({ message: "Mail Sent Successfully", email: email });
 
                 } else {
+                    console.log("Recaptcha Error :", data);
                     return res.status(400).json({ message: "Failed reCAPTCHA verification" });
                 }
             })
