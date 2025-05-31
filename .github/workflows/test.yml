@@ -54,4 +54,4 @@ jobs:
             echo "AWS_REGION"=${{ secrets.AWS_REGION }}" | sudo tee -a .env > /dev/null
             echo "AWS_BUCKET_NAME"=${{ secrets.AWS_BUCKET_NAME }}" | sudo tee -a .env > /dev/null
         
-            pm2 restart inaitestingapi.s3remotica.com || pm2 start index.js --name inaitestingapi.s3remotica.com
+            pm2 restart inaidevapi.s3remotica.com || pm2 start index.js --name inaidevapi.s3remotica.com
