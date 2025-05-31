@@ -33,7 +33,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /usr/share/nginx/html/ini-backend
+            cd /usr/share/nginx/html/inai-dev-api.s3remotica.com
             git config --global --add safe.directory /usr/share/nginx/html/inai-dev-api.s3remotica.com
 
             sudo git pull origin main2
