@@ -10,6 +10,9 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    environment:
+      name: staging
+
     strategy:
       matrix:
         node-version: [22.x]
