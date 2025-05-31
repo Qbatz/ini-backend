@@ -43,7 +43,7 @@ jobs:
             echo "DB_USER=${{ secrets.DB_USER }}" | sudo tee .env > /dev/null
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" | sudo tee -a .env > /dev/null
             echo "DB_HOST=${{ secrets.DB_HOST }}" | sudo tee -a .env > /dev/null
-            echo "PORT=${{ secrets.PORT }}" | sudo tee -a .env > /dev/null
+            echo "PORT=${{ vars.PORT }}" | sudo tee -a .env > /dev/null
             echo "DB_NAME=${{ secrets.DB_NAME }}" | sudo tee -a .env > /dev/null
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" | sudo tee -a .env > /dev/null
             echo "SITE_URL=${{ secrets.SITE_URL }}" | sudo tee -a .env > /dev/null
